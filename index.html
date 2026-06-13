@@ -1,0 +1,2210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="国語クイズ">
+<title>国語クイズ★</title>
+<style>
+:root{
+  --pink:#FF6B9D;--pink-l:#FFB3CC;--purple:#9B59B6;--purple-l:#C39BD3;
+  --gold:#FFD700;--green:#27AE60;--red:#E74C3C;--blue:#3498DB;
+  --bg:linear-gradient(150deg,#FFB3CC 0%,#C39BD3 50%,#9B7DD4 100%);
+  --card:rgba(255,255,255,0.97);--dark:#2c2c3e;--mid:#666;--light:#aaa;
+  --r:18px;--sh:0 4px 20px rgba(0,0,0,0.13);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;min-height:100vh;font-family:-apple-system,'Hiragino Sans','Noto Sans JP',sans-serif;background:var(--bg);overflow-x:hidden}
+.screen{display:flex;flex-direction:column;min-height:100vh;padding:16px 14px 48px}
+.hidden{display:none!important}
+
+/* ── HEADER ── */
+.app-header{text-align:center;padding:18px 0 10px}
+.app-title{font-size:1.9rem;font-weight:900;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.2);letter-spacing:2px}
+.app-sub{font-size:.8rem;color:rgba(255,255,255,.85);margin-top:3px}
+
+/* ── CARD ── */
+.card{background:var(--card);border-radius:var(--r);padding:18px;box-shadow:var(--sh);margin-bottom:14px}
+
+/* ── LEVEL CARD ── */
+.lv-card{display:flex;align-items:center;gap:14px;padding:14px 18px}
+.lv-badge{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#FFD700,#FF8C00);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 12px rgba(255,140,0,.4)}
+.lv-badge .lvt{font-size:.55rem;color:#fff;font-weight:700}
+.lv-badge .lvn{font-size:1.4rem;color:#fff;font-weight:900;line-height:1}
+.lv-info{flex:1}
+.lv-title{font-size:.95rem;font-weight:700;color:var(--dark)}
+.xp-wrap{background:#eee;border-radius:10px;height:9px;margin-top:6px;overflow:hidden}
+.xp-bar{height:100%;border-radius:10px;background:linear-gradient(90deg,#FFD700,#FF8C00);transition:width .5s ease}
+.xp-txt{font-size:.68rem;color:var(--mid);margin-top:3px}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat-item{background:var(--card);border-radius:14px;padding:14px;text-align:center;box-shadow:var(--sh)}
+.stat-v{font-size:1.7rem;font-weight:900;color:var(--purple)}
+.stat-l{font-size:.72rem;color:var(--mid);margin-top:3px}
+
+/* ── BUTTONS ── */
+.btn{display:block;width:100%;padding:17px;border:none;border-radius:var(--r);font-size:1.05rem;font-weight:700;cursor:pointer;text-align:center;-webkit-appearance:none;transition:transform .15s,box-shadow .15s}
+.btn:active{transform:scale(.97)}
+.btn-p{background:linear-gradient(135deg,#FF6B9D,#C44BC8);color:#fff;box-shadow:0 4px 14px rgba(255,107,157,.45);margin-bottom:11px}
+.btn-s{background:linear-gradient(135deg,#667EEA,#764BA2);color:#fff;box-shadow:0 4px 14px rgba(118,75,162,.38);margin-bottom:11px}
+.btn-o{background:#fff;color:var(--purple);border:2px solid var(--purple-l);margin-bottom:11px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ── QUIZ HEADER ── */
+.quiz-top{display:flex;align-items:center;margin-bottom:12px;gap:10px}
+.prog-wrap{flex:1;background:rgba(255,255,255,.4);border-radius:10px;height:8px;overflow:hidden}
+.prog-bar{height:100%;background:#fff;border-radius:10px;transition:width .3s ease}
+.q-count{color:#fff;font-size:.82rem;font-weight:700;white-space:nowrap}
+.quit-btn{background:rgba(255,255,255,.3);border:none;color:#fff;padding:6px 12px;border-radius:12px;font-size:.82rem;cursor:pointer}
+
+/* ── COMBO ── */
+.combo-wrap{text-align:center;min-height:32px;margin-bottom:8px}
+.combo-pill{display:inline-block;padding:5px 16px;background:linear-gradient(135deg,#FF6B9D,#FFD700);border-radius:20px;color:#fff;font-weight:900;font-size:.88rem;animation:comboPop .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes comboPop{from{transform:scale(.6)}to{transform:scale(1)}}
+
+/* ── CATEGORY BADGE ── */
+.cat-badge{display:inline-block;padding:4px 11px;border-radius:20px;font-size:.72rem;font-weight:700;color:#fff;margin-bottom:10px}
+.c1{background:#3498DB}.c2{background:#27AE60}.c3{background:#E67E22}.c4{background:#9B59B6}.c5{background:#E74C3C}.c6{background:#1ABC9C}
+
+/* ── QUESTION & CHOICES ── */
+.q-text{font-size:1.1rem;font-weight:700;color:var(--dark);line-height:1.65;margin-bottom:18px}
+.choices{display:flex;flex-direction:column;gap:9px}
+.ch-btn{padding:15px 18px;background:#fff;border:2px solid #E8E8F0;border-radius:14px;font-size:.98rem;font-weight:600;color:var(--dark);cursor:pointer;text-align:left;line-height:1.4;-webkit-appearance:none;transition:border-color .15s,background .15s}
+.ch-btn.correct{background:#D5F5E3;border-color:#27AE60;color:#1a7a40;animation:correctPop .35s ease}
+.ch-btn.wrong{background:#FADBD8;border-color:#E74C3C;color:#8a1a1a;animation:wrongShake .4s ease}
+.ch-btn.show-ok{background:#D5F5E3;border-color:#27AE60;color:#1a7a40}
+@keyframes correctPop{0%{transform:scale(1)}50%{transform:scale(1.03)}100%{transform:scale(1)}}
+@keyframes wrongShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+
+/* ── EXPLANATION ── */
+.expl-box{background:#FFFBEA;border:2px solid #FFD700;border-radius:14px;padding:14px;margin-top:14px;font-size:.88rem;color:var(--dark);line-height:1.65}
+.expl-head{font-size:1rem;font-weight:700;margin-bottom:6px}
+
+/* ── RESULT ── */
+.stars{display:flex;justify-content:center;gap:6px;margin:12px 0}
+.star{font-size:2.4rem;animation:starPop .4s ease forwards;opacity:0;transform:scale(0)}
+.star-on{color:#FFD700}
+.star-off{color:#ddd}
+@keyframes starPop{from{opacity:0;transform:scale(0) rotate(-30deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+.score-big{text-align:center;margin:10px 0}
+.score-n{font-size:3.4rem;font-weight:900;color:var(--purple);line-height:1}
+.score-d{font-size:.95rem;color:var(--mid)}
+.score-pct{font-size:1.25rem;font-weight:700;color:var(--pink);margin-top:4px}
+.res-summary{display:flex;gap:10px;justify-content:center;margin:10px 0;flex-wrap:wrap}
+.res-item{text-align:center;background:rgba(255,255,255,.7);border-radius:12px;padding:9px 14px}
+.res-v{font-size:1.35rem;font-weight:900;color:var(--purple)}
+.res-l{font-size:.68rem;color:var(--mid)}
+
+/* ── CREATURE ── */
+.creature-card{background:var(--card);border-radius:var(--r);padding:16px;text-align:center;margin-bottom:14px;box-shadow:var(--sh)}
+.cr-big-e{font-size:4.2rem;line-height:1.1;display:block;animation:bob 2.2s ease-in-out infinite}
+.cr-tier-badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:.65rem;font-weight:700;color:#fff;margin-bottom:6px}
+.tier1{background:#999}.tier2{background:#27AE60}.tier3{background:#3498DB}.tier4{background:#E67E22}.tier5{background:#9B59B6}.tier6{background:linear-gradient(135deg,#FFD700,#FF6B9D)}
+.cr-big-name{font-size:1.05rem;font-weight:900;color:var(--dark);margin:5px 0 3px}
+.cr-big-desc{font-size:.76rem;color:var(--mid)}
+/* ── COLLECTION ── */
+.coll-tabs{display:flex;gap:8px;margin-bottom:12px}
+.coll-tab{flex:1;padding:10px;border:none;border-radius:var(--r);font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s}
+.coll-tab.on{background:linear-gradient(135deg,#FF6B9D,#C44BC8);color:#fff;box-shadow:0 3px 10px rgba(255,107,157,.4)}
+.coll-tab:not(.on){background:rgba(255,255,255,.3);color:#fff}
+.food-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.food-item{background:var(--card);border-radius:11px;padding:8px 3px;text-align:center;box-shadow:0 2px 7px rgba(0,0,0,.08)}
+.food-item.locked{opacity:.22;filter:grayscale(1)}
+.food-e{font-size:1.55rem;display:block;line-height:1.2}
+.food-n{font-size:.5rem;font-weight:700;color:var(--dark);margin-top:3px;line-height:1.3}
+.food-r{font-size:.48rem;color:var(--gold);letter-spacing:-1px}
+.cr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.cr-item{background:var(--card);border-radius:13px;padding:11px 6px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.09)}
+.cr-item.locked{opacity:.22;filter:grayscale(1)}
+.cr-item-e{font-size:1.9rem;display:block;margin-bottom:3px}
+.cr-item-n{font-size:.55rem;font-weight:700;color:var(--dark);line-height:1.3}
+/* ── EVO MODAL ── */
+.evo-card{background:#fff;border-radius:24px;padding:34px 28px;text-align:center;animation:modalPop .5s cubic-bezier(.34,1.56,.64,1);max-width:300px;width:88%}
+.evo-big{font-size:4rem;margin-bottom:6px}
+.evo-title{font-size:1.2rem;font-weight:900;color:var(--purple);margin-bottom:4px}
+.evo-name{font-size:1.05rem;font-weight:900;color:var(--pink);margin-bottom:6px}
+.evo-desc{font-size:.82rem;color:#666;margin-bottom:18px}
+
+/* ── PARTICLES ── */
+#pcont{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:900}
+.ptcl{position:absolute;width:9px;height:9px;border-radius:50%;animation:ptclFall 1.1s ease forwards}
+@keyframes ptclFall{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(90px) scale(0)}}
+
+/* ── LEVEL UP MODAL ── */
+#lv-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:2000}
+.lv-card-modal{background:#fff;border-radius:24px;padding:38px 30px;text-align:center;animation:modalPop .5s cubic-bezier(.34,1.56,.64,1);max-width:300px;width:88%}
+@keyframes modalPop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
+.lv-emoji{font-size:3.8rem;margin-bottom:6px}
+.lv-modal-title{font-size:1.3rem;font-weight:900;color:var(--purple);margin-bottom:6px}
+.lv-big{font-size:3rem;font-weight:900;color:var(--gold);text-shadow:0 2px 10px rgba(255,140,0,.35)}
+.lv-new-title{font-size:1rem;font-weight:700;color:var(--pink);margin:8px 0 16px}
+
+/* ── BADGE TOAST ── */
+#b-toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-120px);background:linear-gradient(135deg,#FFD700,#FF8C00);color:#fff;padding:13px 22px;border-radius:18px;font-size:.9rem;font-weight:700;z-index:3000;transition:transform .5s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;box-shadow:0 4px 18px rgba(255,140,0,.45)}
+#b-toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;padding:11px 22px;border-radius:28px;font-size:.88rem;font-weight:600;z-index:3000;opacity:0;transition:opacity .3s;white-space:nowrap}
+#toast.show{opacity:1}
+
+/* ── XP FLOAT ── */
+.xp-float{position:fixed;pointer-events:none;font-weight:900;font-size:1.15rem;color:var(--gold);text-shadow:0 1px 4px rgba(0,0,0,.3);animation:xpUp 1.4s ease forwards;z-index:1500}
+@keyframes xpUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-55px)}}
+
+/* ── MASCOT ── */
+.mascot{text-align:center;font-size:2.8rem;margin:8px 0;animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+
+/* ── CATEGORY FILTER ── */
+.cat-filter-wrap{margin-bottom:14px}
+.cat-filter-label{font-size:.78rem;color:rgba(255,255,255,.9);font-weight:700;margin-bottom:8px}
+.cat-chips{display:flex;flex-wrap:wrap;gap:7px}
+.cat-chip{padding:7px 14px;border-radius:20px;font-size:.78rem;font-weight:700;border:2px solid rgba(255,255,255,.5);color:rgba(255,255,255,.75);background:rgba(255,255,255,.12);cursor:pointer;transition:all .18s;-webkit-tap-highlight-color:transparent}
+.cat-chip.on{background:rgba(255,255,255,.95);color:var(--dark);border-color:transparent;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+
+/* ── MISC ── */
+.back-btn{background:rgba(255,255,255,.3);border:none;color:#fff;padding:8px 16px;border-radius:20px;font-size:.88rem;font-weight:600;cursor:pointer;margin-bottom:14px}
+.sec-title{font-size:.98rem;font-weight:700;color:#fff;margin-bottom:10px;text-shadow:0 1px 4px rgba(0,0,0,.18)}
+.mode-banner{background:linear-gradient(135deg,#667EEA,#764BA2);color:#fff;text-align:center;padding:7px 14px;border-radius:12px;font-size:.82rem;font-weight:700;margin-bottom:10px}
+
+/* ── DIAGNOSTIC ── */
+.diag-meter-wrap{text-align:center;margin:10px 0 18px}
+.diag-meter-wrap svg{overflow:visible}
+.diag-pct-txt{font-size:2rem;font-weight:900;fill:var(--purple)}
+.diag-pct-sub{font-size:.72rem;fill:var(--mid)}
+.diag-cat-row{margin-bottom:13px}
+.diag-cat-label{display:flex;justify-content:space-between;margin-bottom:5px}
+.diag-cat-name{font-size:.82rem;font-weight:700;color:var(--dark)}
+.diag-cat-score{font-size:.78rem;color:var(--mid)}
+.diag-bar-bg{background:#E8E8F0;border-radius:10px;height:14px;overflow:hidden}
+.diag-bar-fill{height:100%;border-radius:10px;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.diag-no-data{text-align:center;padding:24px;color:var(--mid);font-size:.88rem}
+</style>
+</head>
+<body>
+
+<div id="pcont"></div>
+
+<!-- LEVEL UP MODAL -->
+<div id="lv-modal" class="hidden">
+  <div class="lv-card-modal">
+    <div class="lv-emoji">🎉</div>
+    <div class="lv-modal-title">レベルアップ！</div>
+    <div class="lv-big" id="modal-lv-num">2</div>
+    <div style="color:#888;font-size:.88rem;margin:4px 0 0">になったよ！</div>
+    <div class="lv-new-title" id="modal-lv-title"></div>
+    <button class="btn btn-p" onclick="closeLvModal()" style="margin-bottom:0">やったー！🎊</button>
+  </div>
+</div>
+
+<!-- FOOD TOAST -->
+<div id="b-toast">🥚 料理ゲット！</div>
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- EVO MODAL -->
+<div id="evo-modal" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:2001">
+  <div class="evo-card">
+    <div class="evo-big" id="evo-emoji">🐣</div>
+    <div class="evo-title">🎉 進化した！</div>
+    <div class="evo-name" id="evo-name">まじめひよこ</div>
+    <div class="evo-desc" id="evo-desc">説明テキスト</div>
+    <button class="btn btn-p" onclick="closeEvoModal()" style="margin-bottom:0">やったー！</button>
+  </div>
+</div>
+
+<!-- ═══════════════ HOME ═══════════════ -->
+<div id="sc-home" class="screen">
+  <div class="app-header">
+    <div class="app-title">国語クイズ★</div>
+    <div class="app-sub">中学受験レベルの国語を楽しく学ぼう！</div>
+  </div>
+  <div class="creature-card">
+    <span class="cr-tier-badge tier1" id="cr-tier">たまごチーム</span>
+    <span class="cr-big-e" id="cr-emoji">🥚</span>
+    <div class="cr-big-name" id="cr-name">たまご</div>
+    <div class="cr-big-desc" id="cr-desc">うまれたて。なかになにがいるのかな？</div>
+  </div>
+
+  <div class="card lv-card">
+    <div class="lv-badge"><span class="lvt">Lv</span><span class="lvn" id="h-lv">1</span></div>
+    <div class="lv-info">
+      <div class="lv-title" id="h-title">見習い国語生</div>
+      <div class="xp-wrap"><div class="xp-bar" id="h-xpbar" style="width:0%"></div></div>
+      <div class="xp-txt" id="h-xptxt">0 / 50 XP</div>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-item"><div class="stat-v" id="h-total">0</div><div class="stat-l">合計問題数</div></div>
+    <div class="stat-item"><div class="stat-v" id="h-acc">-</div><div class="stat-l">正解率</div></div>
+    <div class="stat-item"><div class="stat-v" id="h-combo">0</div><div class="stat-l">最高コンボ</div></div>
+    <div class="stat-item"><div class="stat-v" id="h-foods">0</div><div class="stat-l">料理コレクション</div></div>
+  </div>
+
+  <div class="cat-filter-wrap">
+    <div class="cat-filter-label">⭐ 難易度を選ぶ</div>
+    <div class="cat-chips" id="diff-chips">
+      <div class="cat-chip on" onclick="setDiff(0,this)">すべて</div>
+      <div class="cat-chip" onclick="setDiff(1,this)">易しい</div>
+      <div class="cat-chip" onclick="setDiff(2,this)">普通</div>
+      <div class="cat-chip" onclick="setDiff(3,this)">難しい</div>
+    </div>
+  </div>
+
+  <div class="cat-filter-wrap">
+    <div class="cat-filter-label">📚 出題する種類を選ぶ（複数OK）</div>
+    <div class="cat-chips" id="cat-chips">
+      <div class="cat-chip on" onclick="toggleCat('漢字の読み',this)">漢字の読み</div>
+      <div class="cat-chip on" onclick="toggleCat('漢字の書き',this)">漢字の書き</div>
+      <div class="cat-chip on" onclick="toggleCat('ことわざ',this)">ことわざ</div>
+      <div class="cat-chip on" onclick="toggleCat('慣用句',this)">慣用句</div>
+      <div class="cat-chip on" onclick="toggleCat('語彙',this)">語彙</div>
+      <div class="cat-chip on" onclick="toggleCat('文法',this)">文法</div>
+    </div>
+  </div>
+
+  <button class="btn btn-p" onclick="startQuiz('normal')">✨ クイズスタート！</button>
+  <button class="btn btn-s" id="review-btn" onclick="startQuiz('review')">📝 復習モード</button>
+  <button class="btn btn-o" onclick="goScreen('diag')">📊 診断レポート</button>
+  <button class="btn btn-o" onclick="goScreen('collection')">🍳 料理＆進化コレクション</button>
+  <button onclick="resetData()" style="background:none;border:none;color:rgba(255,255,255,.45);font-size:.72rem;cursor:pointer;margin-top:4px;text-decoration:underline">データをリセット</button>
+</div>
+
+<!-- ═══════════════ QUIZ ═══════════════ -->
+<div id="sc-quiz" class="screen hidden">
+  <div class="quiz-top">
+    <span class="q-count" id="q-count">1/10</span>
+    <div class="prog-wrap"><div class="prog-bar" id="prog-bar" style="width:0%"></div></div>
+    <button class="quit-btn" onclick="confirmQuit()">やめる</button>
+  </div>
+  <div class="combo-wrap" id="combo-wrap"></div>
+  <div id="mode-banner"></div>
+  <div class="card" style="flex:1">
+    <span class="cat-badge" id="q-cat">漢字の読み</span>
+    <div class="q-text" id="q-text">問題</div>
+    <div class="choices" id="choices"></div>
+    <div id="expl-area"></div>
+  </div>
+  <button class="btn btn-p hidden" id="next-btn" onclick="nextQ()" style="margin-top:11px">つぎの問題へ →</button>
+</div>
+
+<!-- ═══════════════ RESULT ═══════════════ -->
+<div id="sc-result" class="screen hidden">
+  <div class="app-header"><div class="app-title">結果発表！</div></div>
+  <div class="card" style="text-align:center">
+    <div class="stars" id="stars"></div>
+    <div class="score-big">
+      <div class="score-n"><span id="r-correct">0</span></div>
+      <div class="score-d">/ <span id="r-total">10</span> 問正解</div>
+      <div class="score-pct" id="r-pct">0%</div>
+    </div>
+    <div class="res-summary" id="r-summary"></div>
+  </div>
+  <div id="foods-earned-sec" class="hidden">
+    <div class="sec-title">🥚 料理をゲット！</div>
+    <div class="card">
+      <div class="food-grid" id="foods-earned" style="grid-template-columns:repeat(3,1fr)"></div>
+    </div>
+  </div>
+  <button class="btn btn-p" id="retry-btn" onclick="retryQuiz()">もう一度！</button>
+  <button class="btn btn-s" id="review-result-btn" onclick="startQuiz('review')">間違いを復習する</button>
+  <button class="btn btn-o" onclick="goScreen('home')">ホームへ</button>
+</div>
+
+<!-- ═══════════════ DIAGNOSTIC ═══════════════ -->
+<div id="sc-diag" class="screen hidden">
+  <button class="back-btn" onclick="goScreen('home')">← もどる</button>
+  <div class="app-header" style="padding-top:0">
+    <div class="app-title">診断レポート</div>
+    <div class="app-sub" id="diag-sub">合計 0 問挑戦</div>
+  </div>
+  <div class="card">
+    <div style="font-size:.82rem;font-weight:700;color:var(--mid);text-align:center;margin-bottom:8px">総合正解率</div>
+    <div class="diag-meter-wrap">
+      <svg viewBox="0 0 140 140" width="160" height="160">
+        <defs>
+          <linearGradient id="mg" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#FF6B9D"/>
+            <stop offset="100%" style="stop-color:#9B59B6"/>
+          </linearGradient>
+        </defs>
+        <circle cx="70" cy="70" r="54" fill="none" stroke="#E8E8F0" stroke-width="14"/>
+        <circle cx="70" cy="70" r="54" fill="none" stroke="url(#mg)" stroke-width="14"
+          stroke-linecap="round" stroke-dasharray="339.3" id="diag-arc"
+          stroke-dashoffset="339.3" transform="rotate(-90 70 70)" style="transition:stroke-dashoffset .8s ease"/>
+        <text x="70" y="64" text-anchor="middle" class="diag-pct-txt" id="diag-pct-num">0%</text>
+        <text x="70" y="82" text-anchor="middle" class="diag-pct-sub" id="diag-pct-sub2">0 / 0 問</text>
+      </svg>
+    </div>
+  </div>
+  <div class="sec-title">📊 カテゴリ別 正解率</div>
+  <div class="card" id="diag-cats"></div>
+</div>
+
+<!-- ═══════════════ COLLECTION ═══════════════ -->
+<div id="sc-collection" class="screen hidden">
+  <button class="back-btn" onclick="goScreen('home')">← もどる</button>
+  <div class="app-header" style="padding-top:0">
+    <div class="app-title">コレクション</div>
+    <div class="app-sub" id="coll-prog">料理 0/100・進化 0/100</div>
+  </div>
+  <div class="coll-tabs">
+    <button class="coll-tab on" id="tab-food" onclick="switchCollTab('food')">🍳 料理コレクション</button>
+    <button class="coll-tab" id="tab-cr" onclick="switchCollTab('cr')">🐔 進化の記録</button>
+  </div>
+  <div id="coll-food-panel"></div>
+  <div id="coll-cr-panel" class="hidden"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// QUESTIONS
+// ═══════════════════════════════════════════
+const QS = [
+  {id:1,cat:'漢字の読み',q:'「誕生」の正しい読み方はどれ？',cs:['たんじょう','たんせい','だんじょう','だんせい'],a:0,e:'「誕生」は「たんじょう」。「誕」はうまれるという意味の漢字です。'},
+  {id:2,cat:'漢字の読み',q:'「複雑」の正しい読み方はどれ？',cs:['ふくさつ','ふくざつ','ふっさつ','ふつざつ'],a:1,e:'「複雑」は「ふくざつ」。「複」にはいくつも重なるという意味があります。'},
+  {id:3,cat:'漢字の読み',q:'「矛盾」の正しい読み方はどれ？',cs:['もじゅん','むじゅん','もとん','ぼじゅん'],a:1,e:'「矛盾」は「むじゅん」。中国の故事から来た言葉で、前後のつじつまが合わないことを意味します。'},
+  {id:4,cat:'漢字の読み',q:'「余裕」の正しい読み方はどれ？',cs:['よゆう','よゆ','よゆく','よゆが'],a:0,e:'「余裕」は「よゆう」。十分な時間や余りがある状態を意味します。'},
+  {id:5,cat:'漢字の読み',q:'「挑戦」の正しい読み方はどれ？',cs:['ちょうせん','ちょせん','とうせん','ちょさん'],a:0,e:'「挑戦」は「ちょうせん」。困難なことに立ち向かうことを意味します。'},
+  {id:6,cat:'漢字の書き',q:'「この問題はとても（かんたん）だ」の（かんたん）を漢字で書くとどれ？',cs:['感嘆','簡単','間断','簡探'],a:1,e:'「簡単」が正解。やさしい・手軽という意味です。「感嘆」も「かんたん」と読みますが、こちらは「深く感動して感心すること」で意味が違います。'},
+  {id:7,cat:'漢字の書き',q:'「きょうみ」を漢字で書くとどれ？',cs:['京未','共見','興味','教見'],a:2,e:'「興味」が正解。ある物事に心を引かれることを意味します。'},
+  {id:8,cat:'漢字の書き',q:'「しんけん」を漢字で書くとどれ？',cs:['信健','真剣','新現','芯堅'],a:1,e:'「真剣」が正解。本気でまじめに取り組む様子を意味します。'},
+  {id:9,cat:'ことわざ',q:'「石の上にも三年」の意味は？',cs:['石は三年で土に帰る','つらくても辛抱すれば成功する','石を磨くと宝石になる','三年は石のようにじっとすべき'],a:1,e:'冷たい石の上でも三年座り続ければ温まるという意味から、どんなつらいことも辛抱強く続ければ必ず報われることのたとえです。'},
+  {id:10,cat:'ことわざ',q:'「七転び八起き」の意味は？',cs:['体操の連続技','七回転んで八回目に怪我する','何度失敗しても立ち上がること','体がとても柔らかいこと'],a:2,e:'七回転んでも八回起き上がるという意味から、何度失敗しても諦めずに立ち上がることを表します。'},
+  {id:11,cat:'ことわざ',q:'「急がば回れ」の意味は？',cs:['急ぐときは走れ','急ぐときこそ安全な遠回りが結局早い','急いでいると道に迷う','急いで回り道をするな'],a:1,e:'急ぐときこそ危険な近道より安全な遠回りをした方が結局は早く着くという意味のことわざです。'},
+  {id:12,cat:'ことわざ',q:'「猫に小判」の意味は？',cs:['猫はお金が好き','価値のわからない者に貴重なものを与えても無駄','小さいものでも大切にすべき','猫が金持ちなこと'],a:1,e:'猫に小判（お金）は何の価値もないことから、価値のわからない者に貴重なものを与えても無駄なことのたとえです。'},
+  {id:13,cat:'慣用句',q:'「手を貸す」の意味は？',cs:['手を差し出す','お金を借りる','助けてあげる・手伝う','手紙を渡す'],a:2,e:'「手を貸す」は、人の仕事や作業を助けてあげることを意味する慣用句です。'},
+  {id:14,cat:'慣用句',q:'「頭が上がらない」の意味は？',cs:['背が低い','相手に引け目を感じて対等に振る舞えない','勉強が苦手','頭が痛い'],a:1,e:'恩や負い目などがあって、相手に対して対等に振る舞えない様子を表す慣用句です。'},
+  {id:15,cat:'慣用句',q:'「猫の手も借りたい」の意味は？',cs:['猫はとても器用','ペットが大好き','非常に忙しくて誰でも手伝ってほしい','借り物が多すぎる'],a:2,e:'非常に忙しくて、役に立たない猫の手でも借りたいほどだということから、大変忙しい様子を表します。'},
+  {id:16,cat:'慣用句',q:'「目が高い」の意味は？',cs:['背が高い','視力がよい','物の価値をよく判断できる','プライドが高い'],a:2,e:'「目が高い」は、物の善し悪しや価値を正しく判断できることを意味する慣用句です。'},
+  {id:17,cat:'語彙',q:'「倹約」の意味は？',cs:['お金をたくさん使う','むだ使いをせずつつましくすること','けちな人のこと','お金を稼ぐこと'],a:1,e:'「倹約」は、むだ使いをしないでつつましく生活することを意味します。「節約」とほぼ同じ意味です。'},
+  {id:18,cat:'語彙',q:'「卓越」の意味は？',cs:['机の上に置く','越えられないこと','他よりはるかにすぐれていること','特別な才能がないこと'],a:2,e:'「卓越」は、他のものよりはるかにすぐれていることを意味します。「卓越した技術」のように使います。'},
+  {id:19,cat:'文法',q:'「先生がいらっしゃいます」の「いらっしゃいます」は何の敬語？',cs:['謙譲語','丁寧語','尊敬語','美化語'],a:2,e:'「いらっしゃいます」は尊敬語です。相手（先生）の存在・動作を高めて表現しています。「います」の尊敬語が「いらっしゃいます」です。'},
+  {id:20,cat:'文法',q:'「先生にプレゼントを（　）」に入る正しい敬語は？',cs:['やりました','あげました','さしあげました','くれました'],a:2,e:'目上の人（先生）に物を渡すときは謙譲語の「さしあげました」を使います。「あげました」は同輩・目下に使います。'},
+  {id:21,cat:'漢字の読み',q:'「清潔」の正しい読み方はどれ？',cs:['せいけつ','せいせつ','きよけつ','せいかつ'],a:0,e:'「清潔」は「せいけつ」。汚れがなく、きれいな状態を意味します。'},
+  {id:22,cat:'漢字の読み',q:'「責任」の正しい読み方はどれ？',cs:['せきにん','せんにん','せきじん','せいにん'],a:0,e:'「責任」は「せきにん」。自分の行動の結果に対して義務を負うことを意味します。'},
+  {id:23,cat:'漢字の読み',q:'「努力」の正しい読み方はどれ？',cs:['どりょく','ぬりょく','どりき','どうりょく'],a:0,e:'「努力」は「どりょく」。目標に向かって力を尽くすことを意味します。'},
+  {id:24,cat:'漢字の読み',q:'「観察」の正しい読み方はどれ？',cs:['かんさつ','かんちゃつ','けんさつ','かんざつ'],a:0,e:'「観察」は「かんさつ」。よく注意して見ることを意味します。'},
+  {id:25,cat:'漢字の読み',q:'「感謝」の正しい読み方はどれ？',cs:['かんしゃ','かんじゃ','かんざ','かんしゃく'],a:0,e:'「感謝」は「かんしゃ」。ありがたいと思う気持ちを意味します。'},
+  {id:26,cat:'漢字の読み',q:'「景色」の正しい読み方はどれ？',cs:['けしき','けいしき','かげいろ','けいしょく'],a:0,e:'「景色」は「けしき」。自然の眺めのことを意味します。'},
+  {id:27,cat:'漢字の読み',q:'「経験」の正しい読み方はどれ？',cs:['けいけん','きょうけん','きけん','けけん'],a:0,e:'「経験」は「けいけん」。実際に体験して知ることを意味します。'},
+  {id:28,cat:'漢字の読み',q:'「工夫」の正しい読み方はどれ？',cs:['くふう','こうぶ','くふ','こうふう'],a:0,e:'「工夫」は「くふう」。よい方法を考え出すことを意味します。'},
+  {id:29,cat:'漢字の読み',q:'「現実」の正しい読み方はどれ？',cs:['げんじつ','げんしつ','けんじつ','げんじ'],a:0,e:'「現実」は「げんじつ」。実際に起きていることや存在する事実を意味します。'},
+  {id:30,cat:'漢字の読み',q:'「集中」の正しい読み方はどれ？',cs:['しゅうちゅう','じゅうちゅう','しゅちゅう','しゅうちゅく'],a:0,e:'「集中」は「しゅうちゅう」。一つのことに意識や力を集めることを意味します。'},
+  {id:31,cat:'漢字の読み',q:'「純粋」の正しい読み方はどれ？',cs:['じゅんすい','じゅんさい','しゅんすい','じゅんすう'],a:0,e:'「純粋」は「じゅんすい」。まじりけがなくきれいな様子を意味します。'},
+  {id:32,cat:'漢字の読み',q:'「積極」の正しい読み方はどれ？',cs:['せっきょく','せききょく','せっぎょく','せつきょく'],a:0,e:'「積極」は「せっきょく」。「積極的」として、自分から進んで行動する様子に使います。'},
+  {id:33,cat:'漢字の読み',q:'「恩恵」の正しい読み方はどれ？',cs:['おんけい','えんけい','おんよく','おんかい'],a:0,e:'「恩恵」は「おんけい」。恵みや利益のことを意味します。'},
+  {id:34,cat:'漢字の読み',q:'「遠慮」の正しい読み方はどれ？',cs:['えんりょ','えんりょく','とおりょ','えんりょう'],a:0,e:'「遠慮」は「えんりょ」。相手への気遣いから控えめにすることを意味します。'},
+  {id:35,cat:'漢字の読み',q:'「完璧」の正しい読み方はどれ？',cs:['かんぺき','かんへき','かんびき','かんべき'],a:0,e:'「完璧」は「かんぺき」。欠点が全くなく完全なことを意味します。'},
+  {id:36,cat:'漢字の読み',q:'「謙虚」の正しい読み方はどれ？',cs:['けんきょ','かんきょ','けんこ','けんきゅ'],a:0,e:'「謙虚」は「けんきょ」。自分を控えめにして相手を立てる様子を意味します。'},
+  {id:37,cat:'漢字の読み',q:'「懸命」の正しい読み方はどれ？',cs:['けんめい','かんめい','けんみょう','けいめい'],a:0,e:'「懸命」は「けんめい」。命がけで力を尽くすことを意味します。「一生懸命」として有名です。'},
+  {id:38,cat:'漢字の読み',q:'「克服」の正しい読み方はどれ？',cs:['こくふく','かつふく','こっぷく','こくぶく'],a:0,e:'「克服」は「こくふく」。困難や欠点に打ち勝って乗り越えることを意味します。'},
+  {id:39,cat:'漢字の読み',q:'「柔軟」の正しい読み方はどれ？',cs:['じゅうなん','やわなん','じゅうにん','にゅうなん'],a:0,e:'「柔軟」は「じゅうなん」。やわらかくて融通がきく様子を意味します。'},
+  {id:40,cat:'漢字の読み',q:'「繊細」の正しい読み方はどれ？',cs:['せんさい','せいさい','せんせい','せんたい'],a:0,e:'「繊細」は「せんさい」。細かくてきめが細かい様子を意味します。'},
+  {id:41,cat:'漢字の読み',q:'「壮大」の正しい読み方はどれ？',cs:['そうだい','そうたい','しょうだい','ぞうだい'],a:0,e:'「壮大」は「そうだい」。非常にスケールが大きく雄大な様子を意味します。'},
+  {id:42,cat:'漢字の読み',q:'「厳格」の正しい読み方はどれ？',cs:['げんかく','きびかく','げんこく','けんかく'],a:0,e:'「厳格」は「げんかく」。非常に厳しくて妥協しない様子を意味します。'},
+  {id:43,cat:'漢字の読み',q:'「抽象」の正しい読み方はどれ？',cs:['ちゅうしょう','ちゅうぞう','つうしょう','ちょうしょう'],a:0,e:'「抽象」は「ちゅうしょう」。具体性がなく、概念的な様子を意味します。'},
+  {id:44,cat:'漢字の読み',q:'「具体」の正しい読み方はどれ？',cs:['ぐたい','きゅうたい','くたい','ごたい'],a:0,e:'「具体」は「ぐたい」。はっきりした形や内容を持つ様子を意味します。'},
+  {id:45,cat:'漢字の読み',q:'「緊張」の正しい読み方はどれ？',cs:['きんちょう','けんちょう','きんじょう','きんちゅう'],a:0,e:'「緊張」は「きんちょう」。心や体が張りつめてドキドキする状態を意味します。'},
+  {id:46,cat:'漢字の読み',q:'「迷惑」の正しい読み方はどれ？',cs:['めいわく','まいわく','めいかく','めいこく'],a:0,e:'「迷惑」は「めいわく」。他の人に不便や困りごとをかけることを意味します。'},
+  {id:47,cat:'漢字の読み',q:'「奉仕」の正しい読み方はどれ？',cs:['ほうし','ほうじ','ぶうし','ほうせ'],a:0,e:'「奉仕」は「ほうし」。見返りを求めず、人や社会のために働くことを意味します。'},
+  {id:48,cat:'漢字の読み',q:'「礼儀」の正しい読み方はどれ？',cs:['れいぎ','れいき','らいぎ','れいじ'],a:0,e:'「礼儀」は「れいぎ」。人と接するときの作法や心がけを意味します。'},
+  {id:49,cat:'漢字の読み',q:'「伝統」の正しい読み方はどれ？',cs:['でんとう','でんどう','てんとう','でんつう'],a:0,e:'「伝統」は「でんとう」。昔から受け継がれてきた習慣や文化のことを意味します。'},
+  {id:50,cat:'漢字の読み',q:'「尊重」の正しい読み方はどれ？',cs:['そんちょう','とうちょう','そんじゅう','そんちゅう'],a:0,e:'「尊重」は「そんちょう」。大切にして敬うことを意味します。'},
+  {id:51,cat:'漢字の読み',q:'「豊富」の正しい読み方はどれ？',cs:['ほうふ','ゆたふ','ほうぶ','ゆたかふ'],a:0,e:'「豊富」は「ほうふ」。たくさんあってゆたかな様子を意味します。'},
+  {id:52,cat:'漢字の読み',q:'「絶対」の正しい読み方はどれ？',cs:['ぜったい','ぜんたい','ぜつたい','ぜっとい'],a:0,e:'「絶対」は「ぜったい」。どんな場合でも例外なく、必ずという意味です。'},
+  {id:53,cat:'漢字の読み',q:'「永遠」の正しい読み方はどれ？',cs:['えいえん','えいおん','えいがん','えいてん'],a:0,e:'「永遠」は「えいえん」。いつまでも続いて終わりがないことを意味します。'},
+  {id:54,cat:'漢字の読み',q:'「崇高」の正しい読み方はどれ？',cs:['すうこう','そうこう','しゅうこう','すうたか'],a:0,e:'「崇高」は「すうこう」。非常に気高く偉大な様子を意味します。'},
+  {id:55,cat:'漢字の読み',q:'「緻密」の正しい読み方はどれ？',cs:['ちみつ','しみつ','ちまつ','ちみち'],a:0,e:'「緻密」は「ちみつ」。細かいところまで丁寧で正確な様子を意味します。'},
+  {id:56,cat:'漢字の読み',q:'「鮮明」の正しい読み方はどれ？',cs:['せんめい','あざめい','せいめい','せんみょう'],a:0,e:'「鮮明」は「せんめい」。はっきりと明らかな様子を意味します。'},
+  {id:57,cat:'漢字の読み',q:'「複数」の正しい読み方はどれ？',cs:['ふくすう','ふくかず','ふっすう','ふうすう'],a:0,e:'「複数」は「ふくすう」。二つ以上の数があることを意味します。'},
+  {id:58,cat:'漢字の読み',q:'「独自」の正しい読み方はどれ？',cs:['どくじ','どっし','どくし','どくすい'],a:0,e:'「独自」は「どくじ」。他に例がなく、その人・ものだけに特有であることを意味します。'},
+  {id:59,cat:'漢字の読み',q:'「温暖」の正しい読み方はどれ？',cs:['おんだん','おんなん','おんたん','うんだん'],a:0,e:'「温暖」は「おんだん」。気候が暖かい様子を意味します。「地球温暖化」として有名です。'},
+  {id:60,cat:'漢字の読み',q:'「忍耐」の正しい読み方はどれ？',cs:['にんたい','にんだい','じんたい','にんてい'],a:0,e:'「忍耐」は「にんたい」。苦しいことをじっと我慢して耐えることを意味します。'},
+  {id:61,cat:'漢字の書き',q:'「（かんきょう）を守ることが大切だ」の（かんきょう）を漢字で書くとどれ？',cs:['感境','漢境','環境','観教'],a:2,e:'「環境」が正解。身のまわりの自然や状況のことです。'},
+  {id:62,cat:'漢字の書き',q:'「（しょうらい）の夢を語り合った」の（しょうらい）を漢字で書くとどれ？',cs:['少来','生来','松来','将来'],a:3,e:'「将来」が正解。これからの未来・行く先のことです。'},
+  {id:63,cat:'漢字の書き',q:'「夏に自然（たいけん）に行った」の（たいけん）を漢字で書くとどれ？',cs:['大験','代験','体見','体験'],a:3,e:'「体験」が正解。実際に自分の体で経験することです。'},
+  {id:64,cat:'漢字の書き',q:'「（ゆうき）を出して発言した」の（ゆうき）を漢字で書くとどれ？',cs:['有気','友気','勇期','勇気'],a:3,e:'「勇気」が正解。おじけず物事に立ち向かう強い心のことです。'},
+  {id:65,cat:'漢字の書き',q:'「日本の（れきし）を調べた」の（れきし）を漢字で書くとどれ？',cs:['暦史','礼史','力史','歴史'],a:3,e:'「歴史」が正解。過去の出来事の移り変わりのことです。'},
+  {id:66,cat:'漢字の書き',q:'「みんなで（きょうりょく）して完成させた」の（きょうりょく）を漢字で書くとどれ？',cs:['共力','強力','教力','協力'],a:3,e:'「協力」が正解。力を合わせて取り組むことです。「強力」はつよい力という別の意味です。'},
+  {id:67,cat:'漢字の書き',q:'「話し合いで（けつろん）を出した」の（けつろん）を漢字で書くとどれ？',cs:['結論','決論','傑論','絶論'],a:0,e:'「結論」が正解。議論や考えのまとめとして出される答えのことです。'},
+  {id:68,cat:'漢字の書き',q:'「毎日（れんしゅう）して上達した」の（れんしゅう）を漢字で書くとどれ？',cs:['連習','練週','錬習','練習'],a:3,e:'「練習」が正解。上手になるために繰り返し訓練することです。'},
+  {id:69,cat:'漢字の書き',q:'「（きそく）正しい生活を送る」の（きそく）を漢字で書くとどれ？',cs:['記則','奇則','規足','規則'],a:3,e:'「規則」が正解。みんなが守るべき決まりのことです。'},
+  {id:70,cat:'漢字の書き',q:'「（さいのう）を生かして活躍した」の（さいのう）を漢字で書くとどれ？',cs:['財能','在能','採能','才能'],a:3,e:'「才能」が正解。生まれ持った優れた能力のことです。'},
+  {id:71,cat:'漢字の書き',q:'「実験で新しい（はっけん）があった」の（はっけん）を漢字で書くとどれ？',cs:['発見','発現','発建','罰見'],a:0,e:'「発見」が正解。今まで知られていなかったことを初めて見つけることです。'},
+  {id:72,cat:'漢字の書き',q:'「友達との（やくそく）を守る」の（やくそく）を漢字で書くとどれ？',cs:['役束','薬束','訳束','約束'],a:3,e:'「約束」が正解。相手と取り決めたことを守ることです。'},
+  {id:73,cat:'漢字の書き',q:'「日本の（でんとう）文化を学ぶ」の（でんとう）を漢字で書くとどれ？',cs:['電統','伝桶','転統','伝統'],a:3,e:'「伝統」が正解。昔から受け継がれてきた習慣・文化・技術のことです。'},
+  {id:74,cat:'漢字の書き',q:'「子どもの（せいちょう）を見守る」の（せいちょう）を漢字で書くとどれ？',cs:['清長','生長','盛長','成長'],a:3,e:'「成長」が正解。体や心が大きく育っていくことです。'},
+  {id:75,cat:'漢字の書き',q:'「（じゆう）に発言できる授業」の（じゆう）を漢字で書くとどれ？',cs:['事由','次由','字由','自由'],a:3,e:'「自由」が正解。自分の意思で行動できることを意味します。'},
+  {id:76,cat:'漢字の書き',q:'「（へいわ）な世界を目指す」の（へいわ）を漢字で書くとどれ？',cs:['兵和','閉和','平話','平和'],a:3,e:'「平和」が正解。争いや戦いのない穏やかな状態のことです。'},
+  {id:77,cat:'漢字の書き',q:'「（かんさつ）日記をつける」の（かんさつ）を漢字で書くとどれ？',cs:['感察','監察','勧察','観察'],a:3,e:'「観察」が正解。よく注意して見ることです。「監察」は検査・監視の意味で別の言葉です。'},
+  {id:78,cat:'漢字の書き',q:'「（せいかつ）習慣を見直す」の（せいかつ）を漢字で書くとどれ？',cs:['清活','正活','盛活','生活'],a:3,e:'「生活」が正解。日々の暮らしのことです。'},
+  {id:79,cat:'漢字の書き',q:'「（ちしき）を増やすために本を読む」の（ちしき）を漢字で書くとどれ？',cs:['知式','知職','地識','知識'],a:3,e:'「知識」が正解。学習や経験によって得た理解・情報のことです。'},
+  {id:80,cat:'漢字の書き',q:'「（しょうじき）に話すことが大切」の（しょうじき）を漢字で書くとどれ？',cs:['清直','声直','生直','正直'],a:3,e:'「正直」が正解。うそをつかず、ありのままに話すことです。'},
+  {id:81,cat:'漢字の書き',q:'「（そつぎょう）式で涙が出た」の（そつぎょう）を漢字で書くとどれ？',cs:['率業','卒行','卒宴','卒業'],a:3,e:'「卒業」が正解。学校の課程を修了することです。'},
+  {id:82,cat:'漢字の書き',q:'「（しょくぶつ）の観察をした」の（しょくぶつ）を漢字で書くとどれ？',cs:['食物','殖物','植材','植物'],a:3,e:'「植物」が正解。草や木など光合成をする生き物のことです。'},
+  {id:83,cat:'漢字の書き',q:'「（とうひょう）で代表を決めた」の（とうひょう）を漢字で書くとどれ？',cs:['投標','頭票','登票','投票'],a:3,e:'「投票」が正解。選挙や決定のために票を入れることです。'},
+  {id:84,cat:'漢字の書き',q:'「（きょういく）を受ける権利がある」の（きょういく）を漢字で書くとどれ？',cs:['教位','共育','協育','教育'],a:3,e:'「教育」が正解。知識や技能を教え育てることです。'},
+  {id:85,cat:'漢字の書き',q:'「（さんせい）か反対か意見を言う」の（さんせい）を漢字で書くとどれ？',cs:['参成','算成','三成','賛成'],a:3,e:'「賛成」が正解。相手の意見や提案に同意することです。'},
+  {id:86,cat:'漢字の書き',q:'「（えいきょう）を受けて変化した」の（えいきょう）を漢字で書くとどれ？',cs:['映響','永響','栄響','影響'],a:3,e:'「影響」が正解。ある物事が他の物事に及ぼす変化のことです。'},
+  {id:87,cat:'漢字の書き',q:'「（ひょうげん）豊かに話す」の（ひょうげん）を漢字で書くとどれ？',cs:['標現','評現','票現','表現'],a:3,e:'「表現」が正解。考えや感情を言葉・絵・音などで表すことです。'},
+  {id:88,cat:'漢字の書き',q:'「社会に（こうけん）できる人になりたい」の（こうけん）を漢字で書くとどれ？',cs:['高献','功研','公権','貢献'],a:3,e:'「貢献」が正解。力を尽くして役に立つことです。'},
+  {id:89,cat:'漢字の書き',q:'「（けいかく）を立てて行動する」の（けいかく）を漢字で書くとどれ？',cs:['経画','境画','計刻','計画'],a:3,e:'「計画」が正解。目的を達成するための見通しを立てることです。'},
+  {id:90,cat:'漢字の書き',q:'「ゲームに（むちゅう）になった」の（むちゅう）を漢字で書くとどれ？',cs:['無中','霧中','夢注','夢中'],a:3,e:'「夢中」が正解。他のことを忘れて一つのことに熱中することです。'},
+  {id:91,cat:'漢字の書き',q:'「（きけん）な場所には近づかない」の（きけん）を漢字で書くとどれ？',cs:['記険','希険','危見','危険'],a:3,e:'「危険」が正解。命や体に危害が及ぶ恐れのあることです。'},
+  {id:92,cat:'漢字の書き',q:'「（せきにん）を持って行動する」の（せきにん）を漢字で書くとどれ？',cs:['積人','責人','席任','責任'],a:3,e:'「責任」が正解。自分の行動の結果に対して義務を負うことです。'},
+  {id:93,cat:'漢字の書き',q:'「（むちゃ）なことを頼んでしまった」の（むちゃ）を漢字で書くとどれ？',cs:['無多','夢茶','無駄','無茶'],a:3,e:'「無茶」が正解。道理に合わない無理なことを意味します。'},
+  {id:94,cat:'漢字の書き',q:'「（じんこう）が増える大都市」の（じんこう）を漢字で書くとどれ？',cs:['仁口','人工','人好','人口'],a:3,e:'「人口」が正解。ある地域に住む人の数のことです。「人工」は人が作ったもので別の意味です。'},
+  {id:95,cat:'漢字の書き',q:'「（しんか）した技術を使う」の（しんか）を漢字で書くとどれ？',cs:['真価','深花','新貨','進化'],a:3,e:'「進化」が正解。生物や技術などが変化・発展することです。'},
+  {id:96,cat:'漢字の書き',q:'「（おんがく）を聴くと落ち着く」の（おんがく）を漢字で書くとどれ？',cs:['恩楽','温楽','音学','音楽'],a:3,e:'「音楽」が正解。音を組み合わせた芸術のことです。'},
+  {id:97,cat:'漢字の書き',q:'「（あんしん）して暮らせる社会を作る」の（あんしん）を漢字で書くとどれ？',cs:['案心','暗心','安信','安心'],a:3,e:'「安心」が正解。心配や不安がない、落ち着いた状態のことです。'},
+  {id:98,cat:'漢字の書き',q:'「（でんき）をこまめに消す」の（でんき）を漢字で書くとどれ？',cs:['電季','電希','電器','電気'],a:3,e:'「電気」が正解。電力・明かりのことです。「電器」は電気を使う器具で別の言葉です。'},
+  {id:99,cat:'漢字の書き',q:'「（たんとう）の先生に相談する」の（たんとう）を漢字で書くとどれ？',cs:['単当','探当','担倒','担当'],a:3,e:'「担当」が正解。ある仕事や役割を受け持つことです。'},
+  {id:100,cat:'漢字の書き',q:'「（そうぞう）した場面を絵に描いた」の（そうぞう）を漢字で書くとどれ？',cs:['創造','総合','想定','想像'],a:3,e:'「想像」が正解。頭の中で思い描くことです。「創造」は新しいものを作り出すことで別の意味です。'},
+  {id:101,cat:'ことわざ',q:'「花より団子」の意味は？',cs:['花は食べられない','外見より実用・実益を重んじること','団子はとてもおいしい','花と団子どちらも大切'],a:1,e:'見た目の美しさよりも実際の利益・実用を重んじることのたとえです。'},
+  {id:102,cat:'ことわざ',q:'「郷に入っては郷に従え」の意味は？',cs:['田舎に引っ越すべき','故郷が一番大切','その土地や集団のやり方に従うべき','他の土地には行かない'],a:2,e:'ある土地や集団に入ったら、そこのやり方・習慣に従うべきということわざです。'},
+  {id:103,cat:'ことわざ',q:'「一石二鳥」の意味は？',cs:['石で二羽の鳥を追う','一つの行動で二つの利益を得ること','石鳥という珍しい鳥の名前','一羽ずつ順番に捕まえる'],a:1,e:'一つの行動や手段で、同時に二つの目的や利益を得ることのたとえです。'},
+  {id:104,cat:'ことわざ',q:'「虎の威を借る狐」の意味は？',cs:['虎と狐が仲良くする','強者の力を借りて威張ること','狐は虎より賢い','野生動物の知恵'],a:1,e:'権力のある者の力を背景にして、自分が偉いかのように威張ることのたとえです。'},
+  {id:105,cat:'ことわざ',q:'「百聞は一見にしかず」の意味は？',cs:['百回聞くのが大切','百回見るより聞く方がよい','何度聞いても、一度見ることには及ばない','百人で見ると効果的'],a:2,e:'何度聞くよりも実際に自分の目で一度見ることの方が確かだという意味です。'},
+  {id:106,cat:'ことわざ',q:'「千里の道も一歩から」の意味は？',cs:['千里の旅は計画が大切','どんな大きな目標も最初の一歩から始まる','一歩だけ進めばよい','遠い道のりは無理'],a:1,e:'どんなに大きな事業や遠い目標も、最初の一歩を踏み出すことから始まるという意味です。'},
+  {id:107,cat:'ことわざ',q:'「蛙の子は蛙」の意味は？',cs:['カエルは水辺にいる','子はいつか親のようになる','子どもは親に似る','カエルが鳴く'],a:2,e:'子どもは親に似るもので、平凡な親からは平凡な子が生まれることのたとえです。'},
+  {id:108,cat:'ことわざ',q:'「塵も積もれば山となる」の意味は？',cs:['山にはごみが多い','わずかなものも積み重なれば大きくなる','山の土はちりだ','ちりは山から来る'],a:1,e:'わずかなものも積み重ねれば大きくなるということ。少しの努力でも続けることが大切という教えです。'},
+  {id:109,cat:'ことわざ',q:'「出る杭は打たれる」の意味は？',cs:['杭は深く打つべき','目立つ人は批判・攻撃されやすい','出ることは勇気が必要','杭を使って仕事をする'],a:1,e:'人より目立ったり出しゃばったりすると、他人から非難・攻撃されやすいということです。'},
+  {id:110,cat:'ことわざ',q:'「時は金なり」の意味は？',cs:['昔はお金が時計だった','時間はお金のように貴重で大切','金色の時計のこと','お金で時間が買える'],a:1,e:'時間はお金と同じくらい貴重なもので、無駄にしてはいけないという意味です。'},
+  {id:111,cat:'ことわざ',q:'「泣きっ面に蜂」の意味は？',cs:['蜂に刺されて泣く','泣くと蜂が来る','悲しいときにさらに不運が重なること','蜂は危険な昆虫'],a:2,e:'悲しんでいるところにさらに不運なことが重なることのたとえです。'},
+  {id:112,cat:'ことわざ',q:'「棚からぼたもち」の意味は？',cs:['棚にぼたもちを置く','棚の整理をすること','ぼたもちの作り方','思いがけず幸運が転がり込む'],a:3,e:'何もしていないのに、思いがけない幸運が舞い込んでくることのたとえです。'},
+  {id:113,cat:'ことわざ',q:'「類は友を呼ぶ」の意味は？',cs:['友達が増える','呼べば友が来る','似た性格や趣味の者は自然に集まる','類には友が多い'],a:2,e:'同じような性格・趣味・考えを持った人間は自然と引き合い、仲間になるということです。'},
+  {id:114,cat:'ことわざ',q:'「笑う門には福来る」の意味は？',cs:['門で笑ってはいけない','笑いながら入る','笑顔でいれば不運が去る','いつも明るく笑っていると幸福がやってくる'],a:3,e:'いつも笑顔で明るく過ごしていると、自然と幸運や幸福がやってくるということです。'},
+  {id:115,cat:'ことわざ',q:'「備えあれば憂いなし」の意味は？',cs:['備えがあれば必ず勝てる','備えは大変だ','準備をしておけば心配なことがない','憂いは備えで消える'],a:2,e:'日頃から準備や対策をしておけば、いざというときに心配がないという意味です。'},
+  {id:116,cat:'ことわざ',q:'「二兎を追う者は一兎をも得ず」の意味は？',cs:['二羽のうさぎを飼う','二度挑戦すれば成功する','うさぎは一羽ずつ捕まえる','欲張って二つを同時にしようとするとどちらも失敗する'],a:3,e:'欲張って二つのことを同時にしようとすると、どちらも中途半端になって失敗するという教えです。'},
+  {id:117,cat:'ことわざ',q:'「能ある鷹は爪を隠す」の意味は？',cs:['鷹は爪が大切','能力は隠すべき','鷹の爪は鋭い','本当に実力のある人は才能をひけらかさない'],a:3,e:'本当に実力や才能のある人は、それをむやみに見せびらかさないという意味です。'},
+  {id:118,cat:'ことわざ',q:'「三人寄れば文殊の知恵」の意味は？',cs:['三人は多すぎる','文殊菩薩は三人いる','三人は仲良し','凡人でも三人集まれば素晴らしい知恵が出る'],a:3,e:'平凡な人でも三人集まって考えれば、知恵の神様・文殊菩薩のような優れた考えが出るということです。'},
+  {id:119,cat:'ことわざ',q:'「灯台下暗し」の意味は？',cs:['灯台の下は明るい','遠くのことはよく見える','灯台は暗い場所にある','身近なことほどかえって気づきにくい'],a:3,e:'灯台は遠くを照らすが足元は暗いことから、身近なことほど気がつきにくいという意味です。'},
+  {id:120,cat:'ことわざ',q:'「習うより慣れよ」の意味は？',cs:['習うことが大切','先生から必ず習う','慣れないうちは教わる','実際に経験して慣れることが大切'],a:3,e:'人から教わるよりも、自分で実際にやってみて経験を積む方が身につくという意味です。'},
+  {id:121,cat:'ことわざ',q:'「井の中の蛙大海を知らず」の意味は？',cs:['カエルは水が必要','井戸の中には蛙がいる','海には大きな生き物がいる','狭い世界しか知らず、広い世界を知らないこと'],a:3,e:'狭い世界に閉じこもっていて、広い世界を知らないことのたとえです。視野を広げることが大切です。'},
+  {id:122,cat:'ことわざ',q:'「弘法にも筆の誤り」の意味は？',cs:['弘法大師は書が上手','筆は大切に使う','弘法は弘法寺にいた','どんな名人・達人でも失敗することがある'],a:3,e:'書の達人・弘法大師でも書き間違えることがあるように、どんな名人でも失敗することがあるという意味です。'},
+  {id:123,cat:'ことわざ',q:'「猿も木から落ちる」の意味は？',cs:['猿は木が好き','木は危険','猿は落ちやすい','その道の名人でも失敗することがある'],a:3,e:'木登りが得意な猿でも落ちることがあるように、その道の専門家でも失敗することがあるという意味です。'},
+  {id:124,cat:'ことわざ',q:'「急いては事を仕損じる」の意味は？',cs:['急ぐことは大切','急いで仕事をする','急いでも仕事は終わらない','焦って急ぎすぎると失敗する'],a:3,e:'急いでやろうとすると、かえって失敗しやすいという意味です。「急がば回れ」と似た教えです。'},
+  {id:125,cat:'ことわざ',q:'「蓼食う虫も好き好き」の意味は？',cs:['蓼は虫が好き','虫は何でも食べる','虫は植物が好き','人の好みはそれぞれで、変わった好みの人もいる'],a:3,e:'辛い蓼の葉を好んで食べる虫もいるように、人の好みはさまざまで、変わった好みもあるという意味です。'},
+  {id:126,cat:'ことわざ',q:'「隣の芝生は青い」の意味は？',cs:['隣の庭の手入れが大切','芝生は青い方がよい','隣と仲良くする','他人のものは自分のものよりよく見えてしまう'],a:3,e:'他人の持ち物や状況は、自分のものより良く見えてしまうことのたとえです。'},
+  {id:127,cat:'ことわざ',q:'「果報は寝て待て」の意味は？',cs:['寝ると夢が見える','寝ながら仕事する','果物は待てば熟す','幸運はあせらず時を待つのがよい'],a:3,e:'幸運はあせって求めるよりも、あわてず静かに待つ方がよいという意味です。'},
+  {id:128,cat:'ことわざ',q:'「医者の不養生」の意味は？',cs:['医者は健康的','医者はよく眠る','健康管理が大切','知識がありながら自分のことは実践しないこと'],a:3,e:'健康を説く医者が自分の健康管理はしないように、知識があっても自分には実践しないことのたとえです。'},
+  {id:129,cat:'ことわざ',q:'「負けるが勝ち」の意味として正しいのはどれ？',cs:['実力で勝つことが大切','あえて引いて譲ることが長い目で見ると得策なこと','常に勝ちを目指すべき','負けることは恥ずかしい'],a:1,e:'「負けるが勝ち」は、争いを避けてあえて相手に譲ることが、結果的に自分にとって利益になるということです。'},
+  {id:130,cat:'ことわざ',q:'「口は禍の元」の意味は？',cs:['話すことが大切','口が大きいのは縁起が悪い','不用意な言葉が災いを招く','禍々しい言葉'],a:2,e:'うかつな言葉が災いや争いを引き起こすもとになるという意味で、言葉の大切さを説いたことわざです。'},
+  {id:131,cat:'慣用句',q:'「腹を割って話す」の意味は？',cs:['お腹を手術する','本音で包み隠さず話す','お腹が痛い','大声で話す'],a:1,e:'心の中をさらけ出して、本音で正直に話すことを意味します。'},
+  {id:132,cat:'慣用句',q:'「肩を持つ」の意味は？',cs:['肩をもみほぐす','荷物を持つ','肩が凝る','一方の味方をする'],a:3,e:'争いや意見の対立などで、どちらか一方の立場を支持・味方することを意味します。'},
+  {id:133,cat:'慣用句',q:'「首をひねる」の意味は？',cs:['首が痛い','首を回す体操','首が短い','疑問に思って考え込む'],a:3,e:'納得できなかったり、不思議に思ったりして首をかしげる様子から、疑問に思うことを意味します。'},
+  {id:134,cat:'慣用句',q:'「口が堅い」の意味は？',cs:['口を開けるのが難しい','食べ物が硬い','話すのが苦手','秘密をしっかり守ること'],a:3,e:'人から聞いた秘密などを他人に話さず、しっかり守ることを意味します。'},
+  {id:135,cat:'慣用句',q:'「骨が折れる」の意味は？',cs:['骨を骨折する','体が疲れた','骨が細い','大変な苦労や手間がかかること'],a:3,e:'大変な努力や苦労が必要なことを意味します。「骨折り」と同じ意味です。'},
+  {id:136,cat:'慣用句',q:'「耳が痛い」の意味は？',cs:['耳の病気','音が大きすぎる','耳が聞こえにくい','自分の弱点を指摘されて聞くのがつらい'],a:3,e:'自分の欠点や失敗を指摘されて、聞くのが苦痛なことを意味します。'},
+  {id:137,cat:'慣用句',q:'「水に流す」の意味は？',cs:['川に流す','溺れる','水を使う','過去のことを忘れてなかったことにする'],a:3,e:'過去の失敗や恨みなどを問題にしないで、すっかり忘れることを意味します。'},
+  {id:138,cat:'慣用句',q:'「肝に銘じる」の意味は？',cs:['教えや戒めを心にしっかり刻み込む','肝臓が痛くなるほど心配する','非常に感動して忘れられない','腹の底から理解する'],a:0,e:'肝（きも）＝心に銘（めい）として刻み込むことから、忘れないようにしっかりと心に刻みつけることのたとえです。'},
+  {id:139,cat:'慣用句',q:'「気が置けない」の意味は？',cs:['気が抜けない','緊張が続く','気分が悪い','遠慮や気遣いが不要な打ち解けた関係'],a:3,e:'「気が置けない」は気を遣う必要がなく、心から打ち解けられる間柄のことです。本来はよい意味です。'},
+  {id:140,cat:'慣用句',q:'「的を射る」の意味は？',cs:['弓矢で的に当てる','目標を定める','矢を射る','核心をついていること'],a:3,e:'物事の本質や核心をうまくついていることを意味します。「的を得る」は誤用です。'},
+  {id:141,cat:'慣用句',q:'「馬が合う」の意味は？',cs:['馬に乗れる','馬を育てる','競馬が好き','気が合って仲良くなれる'],a:3,e:'性格や気が合って、うまく付き合えることを意味します。もとは馬と乗り手の相性から来た言葉です。'},
+  {id:142,cat:'慣用句',q:'「お茶を濁す」の意味は？',cs:['お茶の入れ方','濃いお茶を飲む','お茶を薄める','いい加減なことを言ってその場をごまかす'],a:3,e:'はっきりさせるべきことをあいまいにして、その場をごまかすことを意味します。'},
+  {id:143,cat:'慣用句',q:'「舌を巻く」の意味は？',cs:['舌を動かす','話すのが下手','舌が痛い','大変感心して驚く'],a:3,e:'あまりのすばらしさに言葉が出ないほど感心・驚くことを意味します。'},
+  {id:144,cat:'慣用句',q:'「さじを投げる」の意味は？',cs:['スプーンを投げる','料理をやめる','道具を捨てる','どうにもならないとあきらめる'],a:3,e:'医者がさじ（薬匙）を投げることから、どうにもならないとあきらめることを意味します。'},
+  {id:145,cat:'慣用句',q:'「二の足を踏む」の意味は？',cs:['二歩目を踏む','足がもつれる','二番目に進む','ためらって決断できない'],a:3,e:'一歩進んで二歩目が出ない様子から、ためらって踏み切れないことを意味します。'},
+  {id:146,cat:'慣用句',q:'「立て板に水」の意味は？',cs:['板が立っている','水の流れ','板で水をせき止める','よどみなく流暢に話すこと'],a:3,e:'立てた板に水が流れるように、よどみなく流暢にすらすら話すことを意味します。'},
+  {id:147,cat:'慣用句',q:'「目をつぶる」の意味は？',cs:['眠る','目が痛い','まぶたを閉じる','欠点や問題をあえて見逃す'],a:3,e:'欠点や問題があることを知りながら、あえて注意しないで見逃すことを意味します。'},
+  {id:148,cat:'慣用句',q:'「腕が鳴る」の意味は？',cs:['腕が痛い','腕の音がする','運動する','自信や実力を発揮したくてうずうずすること'],a:3,e:'自分の腕前・技術を発揮したくてうずうずする気持ちを意味します。'},
+  {id:149,cat:'慣用句',q:'「鼻につく」の意味は？',cs:['においがする','花粉症','鼻が大きい','気になって嫌な感じがする'],a:3,e:'いつも同じことが繰り返されて飽き飽きし、嫌な感じがすることを意味します。'},
+  {id:150,cat:'慣用句',q:'「胸を張る」の意味は？',cs:['胸が広い','深呼吸する','胸が痛い','自信を持って堂々とする'],a:3,e:'自信を持って堂々とした態度をとることを意味します。'},
+  {id:151,cat:'慣用句',q:'「手を焼く」の意味は？',cs:['料理をする','手をあぶる','手が熱い','扱いに困って苦労すること'],a:3,e:'扱いが難しかったり、うまくいかなかったりして苦労することを意味します。'},
+  {id:152,cat:'慣用句',q:'「腰が重い」の意味は？',cs:['太っている','腰痛','疲れている','なかなか行動を起こさないこと'],a:3,e:'なかなか重い腰を上げず、行動に踏み切らないことを意味します。'},
+  {id:153,cat:'慣用句',q:'「血が騒ぐ」の意味は？',cs:['怪我をした','血が循環する','体調が悪い','興奮して気持ちが高ぶる'],a:3,e:'興奮や期待、闘志などで気持ちが高ぶって落ち着かないことを意味します。'},
+  {id:154,cat:'慣用句',q:'「折り紙付き」の意味は？',cs:['折り紙が上手','折り紙で作った','紙を折る','品質や実力が保証されていること'],a:3,e:'保証書の意味がある「折り紙」から来た言葉で、確かな品質や実力が保証されていることを意味します。'},
+  {id:155,cat:'慣用句',q:'「足が出る」の意味は？',cs:['靴を脱ぐ','足を伸ばす','走って疲れる','予算を超えて赤字になること'],a:3,e:'予算や収入の範囲を超えて、赤字・不足が出ることを意味します。'},
+  {id:156,cat:'慣用句',q:'「虫がいい」の意味は？',cs:['虫が好き','自然が豊か','虫がかわいい','自分に都合よく考えすぎること'],a:3,e:'自分の都合ばかりを考えて、身勝手なことを意味します。「虫のいい話だ」のように使います。'},
+  {id:157,cat:'慣用句',q:'「話に花が咲く」の意味は？',cs:['花の話をする','花びらが散る','話すのが好き','話が弾んで楽しく盛り上がる'],a:3,e:'話が次々と弾んで楽しく盛り上がることを意味します。'},
+  {id:158,cat:'慣用句',q:'「舌が回る」の意味は？',cs:['舌を動かす体操','発音の練習','舌が痛い','言葉がなめらかにすらすら出ること'],a:3,e:'言葉がなめらかにすらすら出てよくしゃべれることを意味します。'},
+  {id:159,cat:'慣用句',q:'「目から鼻へ抜ける」の意味は？',cs:['鼻が詰まる','顔の構造','目と鼻が近い','頭が鋭くて抜け目がない'],a:3,e:'頭が鋭くて抜け目なく利口なことを意味します。'},
+  {id:160,cat:'慣用句',q:'「熱を上げる」の意味は？',cs:['体温が上がる','料理を温める','熱い場所にいる','ある物事に夢中になること'],a:3,e:'ある物事や人に夢中になって、熱心に打ち込むことを意味します。'},
+  {id:161,cat:'語彙',q:'「尽力」の意味は？',cs:['力が尽きること','力を尽くして努力すること','力がなくなる','少しの力'],a:1,e:'「尽力」は力を惜しまずに努力することです。「ご尽力いただき」のように使います。'},
+  {id:162,cat:'語彙',q:'「謙遜」の意味は？',cs:['怒ること','自分を高く評価すること','へりくだって相手を立てること','知らないふりをすること'],a:2,e:'「謙遜」は自分をへりくだって相手を立てることです。「謙遜な態度」のように使います。'},
+  {id:163,cat:'語彙',q:'「温厚」の意味は？',cs:['暖かいこと','穏やかで優しい性格','温かい気候','厚着すること'],a:1,e:'「温厚」は穏やかで情け深く、やさしい性格のことです。'},
+  {id:164,cat:'語彙',q:'「鋭敏」の意味は？',cs:['鋭い刃物','感覚や頭の働きが鋭いこと','早く走ること','声が大きいこと'],a:1,e:'「鋭敏」は感覚や知覚・頭の働きが鋭くすぐれていることです。'},
+  {id:165,cat:'語彙',q:'「慎重」の意味は？',cs:['勇気があること','思い切りがよいこと','注意深く軽はずみでないこと','慎ましいこと'],a:2,e:'「慎重」は物事を十分に注意して、軽はずみな行動をしないことです。'},
+  {id:166,cat:'語彙',q:'「奔走」の意味は？',cs:['速く走ること','あちこち走り回って物事に取り組むこと','逃げること','目標に向かうこと'],a:1,e:'「奔走」は目的のためにあちこち走り回って努力することです。'},
+  {id:167,cat:'語彙',q:'「寛大」の意味は？',cs:['体が大きいこと','心が広くて人を許せること','態度が大きいこと','優しすぎること'],a:1,e:'「寛大」は心が広くて小さなことを気にせず、人を許せることです。'},
+  {id:168,cat:'語彙',q:'「率直」の意味は？',cs:['率いること','遠回しに言うこと','正直にありのままに言うこと','直進すること'],a:2,e:'「率直」は遠回しにせず、思ったことをありのままに言うことです。'},
+  {id:169,cat:'語彙',q:'「斬新」の意味は？',cs:['古いこと','新しくて独創的なこと','刃物で切ること','新入生'],a:1,e:'「斬新」は今までにない発想で、非常に新しくて独創的なことです。'},
+  {id:170,cat:'語彙',q:'「顕著」の意味は？',cs:['目立たないこと','はっきりと目立つこと','著作を発表すること','著名人のこと'],a:1,e:'「顕著」はほかとはっきり区別できるほど目立つことです。「顕著な成果」のように使います。'},
+  {id:171,cat:'語彙',q:'「凡庸」の意味は？',cs:['特別にすぐれていること','平凡で特に優れたところがないこと','ありふれた方法','用もないこと'],a:1,e:'「凡庸」は平凡で特に優れたところのないことです。'},
+  {id:172,cat:'語彙',q:'「払拭」の意味は？',cs:['拭き掃除','すっかり取り除くこと','払い戻すこと','支払いをすること'],a:1,e:'「払拭」は疑いや不安などを完全に取り除くことです。「不安を払拭する」のように使います。'},
+  {id:173,cat:'語彙',q:'「逡巡」の意味は？',cs:['前に進むこと','ためらってぐずぐずすること','素早く動くこと','巡回すること'],a:1,e:'「逡巡」はためらってぐずぐずして、決断できないでいることです。受験によく出る難しい語です。'},
+  {id:174,cat:'語彙',q:'「示唆」の意味は？',cs:['示す・見せる','はっきり言うこと','遠回しにそれとなく知らせること','唆すこと'],a:2,e:'「示唆」は直接言わずに、それとなく暗示・ほのめかすことです。'},
+  {id:175,cat:'語彙',q:'「粛々」の意味は？',cs:['急いで行うこと','賑やかに行うこと','静かに厳かに行うこと','粛清すること'],a:2,e:'「粛々」は静かに、そして厳かに物事を進める様子です。'},
+  {id:176,cat:'語彙',q:'「刹那」の意味は？',cs:['長い時間','ごくわずかな瞬間','刺激的なこと','場所の名前'],a:1,e:'「刹那」は非常に短い一瞬間のことです。「刹那的な生き方」のように使います。'},
+  {id:177,cat:'語彙',q:'「含蓄」の意味は？',cs:['食べること','深い意味や内容が含まれていること','容積が大きいこと','薬を飲むこと'],a:1,e:'「含蓄」は言葉や文章に深い意味や内容が含まれていることです。「含蓄のある言葉」のように使います。'},
+  {id:178,cat:'語彙',q:'「逆説」の意味は？',cs:['正しい説','反論すること','一見矛盾しているが真実を含む言い方','説明の逆'],a:2,e:'「逆説」は一見矛盾や不合理に見えるが、実は深い真実を含んでいる言い方です。'},
+  {id:179,cat:'語彙',q:'「稀有」の意味は？',cs:['多いこと','普通のこと','非常にまれで珍しいこと','有名なこと'],a:2,e:'「稀有」は非常にまれで珍しいことです。「稀有な才能」のように使います。'},
+  {id:180,cat:'語彙',q:'「拮抗」の意味は？',cs:['争うこと','互いに力が同じくらいで競い合うこと','協力すること','一方が勝つこと'],a:1,e:'「拮抗」は二つの力が同じくらいで競り合っている状態のことです。'},
+  {id:181,cat:'語彙',q:'「詭弁」の意味は？',cs:['正しい議論','外国の言葉','一見正しそうだが実は誤った議論','議論を避けること'],a:2,e:'「詭弁」は一見筋が通っているように見えるが実は誤った、人を欺くための議論のことです。'},
+  {id:182,cat:'語彙',q:'「惰性」の意味は？',cs:['怠けること','何かへの熱意','今まで続いてきた勢いのままに動くこと','石の性質'],a:2,e:'「惰性」は特に意識せず、今までの勢いや習慣でそのまま続けることです。'},
+  {id:183,cat:'語彙',q:'「克明」の意味は？',cs:['克服すること','明るいこと','細かいところまで丁寧なこと','勝つこと'],a:2,e:'「克明」はすみずみまで丁寧で詳しいことです。「克明に記録する」のように使います。'},
+  {id:184,cat:'語彙',q:'「恣意的」の意味は？',cs:['故意に','自分の勝手な考えで行動すること','意味があること','系統立てて考えること'],a:1,e:'「恣意的」は論理的・客観的な根拠なく、自分の気ままな判断で行動することです。'},
+  {id:185,cat:'語彙',q:'「貢献」と反対の意味に近い語はどれ？',cs:['奉仕','尽力','妨害','協力'],a:2,e:'「貢献」は役に立つことなので、反対に近い語は邪魔をする「妨害」です。'},
+  {id:186,cat:'文法',q:'「申し上げる」は何の敬語？',cs:['尊敬語','丁寧語','謙譲語','美化語'],a:2,e:'「申し上げる」は謙譲語です。自分が「言う」をへりくだって表現しています。'},
+  {id:187,cat:'文法',q:'「召し上がる」は何の敬語？',cs:['謙譲語','丁寧語','美化語','尊敬語'],a:3,e:'「召し上がる」は尊敬語です。相手が「食べる・飲む」を高めて表現しています。'},
+  {id:188,cat:'文法',q:'「お目にかかる」は何の敬語？',cs:['尊敬語','謙譲語','丁寧語','美化語'],a:1,e:'「お目にかかる」は謙譲語です。「会う」の謙譲語で、自分がへりくだって表現します。'},
+  {id:189,cat:'文法',q:'「お花」の「お」は何語？',cs:['尊敬語','謙譲語','丁寧語','美化語'],a:3,e:'「お花」の「お」は美化語です。物事を上品に美しく表現するために使います。'},
+  {id:190,cat:'文法',q:'「先生が来られた」の「来られた」は何の敬語？',cs:['謙譲語','丁寧語','尊敬語','美化語'],a:2,e:'「来られた」は尊敬語です。先生の動作を高めて表現しています。'},
+  {id:191,cat:'文法',q:'「参る」は何の敬語？',cs:['尊敬語','謙譲語','丁寧語','美化語'],a:1,e:'「参る」は謙譲語です。自分が「行く・来る」をへりくだって表現します。'},
+  {id:192,cat:'文法',q:'「拝見する」は何の敬語？',cs:['尊敬語','美化語','丁寧語','謙譲語'],a:3,e:'「拝見する」は謙譲語です。「見る」をへりくだって表現しています。'},
+  {id:193,cat:'文法',q:'「いただく」は何の敬語？',cs:['尊敬語','美化語','丁寧語','謙譲語'],a:3,e:'「いただく」は謙譲語です。「もらう」「食べる・飲む」のへりくだった表現です。'},
+  {id:194,cat:'文法',q:'「美しい花が庭に咲いた」の主語はどれ？',cs:['美しい','花が','庭に','咲いた'],a:1,e:'「花が」が主語です。「が・は・も・こそ」などの助詞がついた部分が主語になります。'},
+  {id:195,cat:'文法',q:'「ゆっくり歩く」の「ゆっくり」は何の働きをする語？',cs:['主語','述語','修飾語','接続語'],a:2,e:'「ゆっくり」は「歩く」を詳しく説明する修飾語（副詞）です。'},
+  {id:196,cat:'文法',q:'「しかし」はどんな種類の接続語？',cs:['順接','逆接','添加','転換'],a:1,e:'「しかし」は前の内容と逆の内容をつなぐ逆接の接続語です。'},
+  {id:197,cat:'文法',q:'「そして」はどんな種類の接続語？',cs:['逆接','転換','順接','添加'],a:3,e:'「そして」は前の内容に付け加える添加の接続語です。'},
+  {id:198,cat:'文法',q:'「だから」はどんな種類の接続語？',cs:['逆接','添加','転換','順接'],a:3,e:'「だから」は前の内容の結果・結論をつなぐ順接の接続語です。'},
+  {id:199,cat:'文法',q:'形容詞の特徴として正しいのは？',cs:['「だ」で終わる','「い」で終わる','動作を表す','体言に続く'],a:1,e:'形容詞は「大きい・美しい」のように「い」で終わります。「だ」で終わるのは形容動詞です。'},
+  {id:200,cat:'文法',q:'形容動詞の特徴として正しいのは？',cs:['「い」で終わる','動作を表す','「な・だ」の形を持つ','助詞をとらない'],a:2,e:'形容動詞は「静かな・静かだ」のように「な・だ」の形を持ちます。例：きれいな、元気な。'},
+  {id:201,cat:'文法',q:'受け身（受動態）の文として正しいのは？',cs:['犬が猫を追った','花が綺麗だ','私が歌を歌う','先生に褒められた'],a:3,e:'受け身の文は「〜に〜られた/された」の形です。「先生に褒められた（先生が私を褒めた）」が受け身です。'},
+  {id:202,cat:'文法',q:'「〜させる」はどんな意味？',cs:['自分が行う','される（受け身）','〜できる（可能）','他の人に何かをさせる（使役）'],a:3,e:'「〜させる」は他の人に何かをやらせる「使役」の意味です。「子どもに片付けさせた」など。'},
+  {id:203,cat:'文法',q:'「ない」が含まれる文で否定を表さないのは？',cs:['食べない','行かない','申し訳ない','知らない'],a:2,e:'「申し訳ない」の「ない」は形容詞の一部で、否定を表しません。「仕方ない」「もったいない」なども同様です。'},
+  {id:204,cat:'文法',q:'「体言止め」とは何か？',cs:['動詞で文を終える','助詞で文を終える','名詞・代名詞で文を終える','形容詞で文を終える'],a:2,e:'体言止めは文末を名詞や代名詞で終わらせる表現技法です。余韻や強調の効果があります。'},
+  {id:205,cat:'文法',q:'「倒置法」とは何か？',cs:['文字を逆に書く','文の順序を通常と逆にする','内容を省略する技法','言葉を繰り返す技法'],a:1,e:'倒置法は普通の語順を逆にする表現技法です。例：「美しいなあ、桜が（→桜が美しいなあ）」'},
+  {id:206,cat:'文法',q:'「擬人法」とは何か？',cs:['人物を描写すること','人でないものを人に例えること','人物を比喩にすること','人と物を比べること'],a:1,e:'擬人法は人間でないものを人間に見立てて表現する技法です。例：「風が話しかけてくる」'},
+  {id:207,cat:'文法',q:'「直喩」の特徴として正しいのは？',cs:['「ようだ・みたいだ」を使わない','「ようだ・みたいだ」を使う','詩にしか使えない','散文にしか使えない'],a:1,e:'直喩は「〜のようだ・みたいだ」を使う比喩です。「ようだ」を使わないものが隠喩（暗喩）です。'},
+  {id:208,cat:'文法',q:'「きれいな庭」の「きれいな」は何？',cs:['形容詞','副詞','動詞の連体形','形容動詞の連体形'],a:3,e:'「きれいな」は形容動詞「きれいだ」の連体形（名詞を修飾する形）です。'},
+  {id:209,cat:'文法',q:'「ら抜き言葉」として誤りなのは？',cs:['見れる','着れる','来られる','食べれる'],a:2,e:'「来られる」は「来る」の可能形として正しい表現です。「見れる・食べれる・着れる」は「ら抜き言葉」で誤りです。'},
+  {id:210,cat:'文法',q:'二重敬語として誤りなのは？',cs:['おいでになる','いらっしゃいます','お越しになる','召し上がられる'],a:3,e:'「召し上がられる」は尊敬語「召し上がる」にさらに「られる」をつけた二重敬語で誤りです。'},
+  {id:211,cat:'文法',q:'「先生のご意見」の「ご」は何語？',cs:['美化語','丁寧語','謙譲語','尊敬語'],a:3,e:'「ご意見」の「ご」は相手（先生）に対する尊敬語の接頭語です。相手に関することを高めています。'},
+  {id:212,cat:'文法',q:'「おはようございます」の「ございます」は何語？',cs:['謙譲語','尊敬語','美化語','丁寧語'],a:3,e:'「ございます」は丁寧語です。丁寧語は話し相手に対して丁寧に表現するものです。'},
+  {id:213,cat:'文法',q:'「それとも」はどんな種類の接続語？',cs:['順接','逆接','選択','添加'],a:2,e:'「それとも」はどちらかを選ぶ「選択」の接続語です。「または・あるいは」も同じ種類です。'},
+  {id:214,cat:'文法',q:'「つまり」はどんな種類の接続語？',cs:['逆接','転換','添加','言い換え（補足）'],a:3,e:'「つまり」は前の内容を言い換えたり、まとめたりする言い換え（補足）の接続語です。'},
+  {id:215,cat:'文法',q:'「ところで」はどんな種類の接続語？',cs:['順接','逆接','添加','転換'],a:3,e:'「ところで」は話題を変える「転換」の接続語です。「さて・では」も同じ種類です。'},
+  {id:216,cat:'文法',q:'「走る・書く・読む」のような語を何という？',cs:['形容詞','形容動詞','動詞','助詞'],a:2,e:'動作・状態・存在を表す語を動詞といいます。活用があり「走る・走った・走れば」のように変化します。'},
+  {id:217,cat:'文法',q:'「〜てしまう」はどんな意味を表すか？',cs:['する予定','できない','してほしい','完了・後悔・意図せず起きた'],a:3,e:'「〜てしまう」は完了（してしまった）や後悔・残念な気持ち、意図せず起きたことを表します。'},
+  {id:218,cat:'文法',q:'「彼は走るのが得意だ」の「の」の働きは？',cs:['主格を示す','体言の代わり（形式名詞）','修飾する','連体格を示す'],a:1,e:'「走るのが」の「の」は「走ること」と同様に体言（名詞）の代わりをする形式名詞です。'},
+  {id:219,cat:'文法',q:'主語につく助詞として正しくないのは？',cs:['は','が','も','を'],a:3,e:'「を」は目的語につく助詞です。「が・は・も・こそ」などが主語につく助詞です。'},
+  {id:220,cat:'文法',q:'「彼女はとても歌が上手だ」の述語はどれ？',cs:['彼女は','とても','歌が','上手だ'],a:3,e:'述語は「〜だ・〜た・〜る」などで終わる、文の中心となる部分です。「上手だ」が述語です。'},
+
+  // ── 漢字の読み 221-380 ──
+  {id:221,cat:'漢字の読み',q:'「優勝」の読み方は？',cs:['ゆうしょう','ゆうそう','ゆしょう','いちとう'],a:0,e:'優勝はゆうしょうと読みます。「優」はゆう、「勝」はしょうと読む漢字です。'},
+  {id:222,cat:'漢字の読み',q:'「危険」の読み方は？',cs:['きけん','きねん','きかん','きれん'],a:0,e:'危険はきけんと読みます。「危」はき、「険」はけんです。'},
+  {id:223,cat:'漢字の読み',q:'「複雑」の読み方は？',cs:['ふくざつ','ふくさつ','ふくらつ','ふくじゃつ'],a:0,e:'複雑はふくざつと読みます。いろいろな要素が入り組んでいることを意味します。'},
+  {id:224,cat:'漢字の読み',q:'「観察」の読み方は？',cs:['かんさつ','かんさい','かんざつ','かんしつ'],a:0,e:'観察はかんさつと読みます。注意深く見ることを意味します。'},
+  {id:225,cat:'漢字の読み',q:'「比較」の読み方は？',cs:['ひかく','ひかつ','ひきょう','ひかい'],a:0,e:'比較はひかくと読みます。二つ以上のものを比べることです。'},
+  {id:226,cat:'漢字の読み',q:'「清潔」の読み方は？',cs:['せいけつ','せいかつ','せいけい','しょうけつ'],a:0,e:'清潔はせいけつと読みます。きれいでよごれがないことです。'},
+  {id:227,cat:'漢字の読み',q:'「感動」の読み方は？',cs:['かんどう','かんとう','かんのう','かんだ'],a:0,e:'感動はかんどうと読みます。深く心を動かされることです。'},
+  {id:228,cat:'漢字の読み',q:'「独立」の読み方は？',cs:['どくりつ','どくりゅう','どくたつ','どくいつ'],a:0,e:'独立はどくりつと読みます。他に頼らず自分の力で立つことです。'},
+  {id:229,cat:'漢字の読み',q:'「平等」の読み方は？',cs:['びょうどう','へいどう','びょうとう','へいとう'],a:0,e:'平等はびょうどうと読みます。差別なく同じ扱いをすることです。'},
+  {id:230,cat:'漢字の読み',q:'「豊富」の読み方は？',cs:['ほうふ','ほうぶ','ほふ','ほうぷ'],a:0,e:'豊富はほうふと読みます。十分なほどたくさんあることです。'},
+  {id:231,cat:'漢字の読み',q:'「責任」の読み方は？',cs:['せきにん','せきじん','せきにん','しゃくにん'],a:0,e:'責任はせきにんと読みます。自分がしたことの結果を引き受けることです。'},
+  {id:232,cat:'漢字の読み',q:'「幸福」の読み方は？',cs:['こうふく','こうぶく','かんふく','こうふ'],a:0,e:'幸福はこうふくと読みます。しあわせな状態のことです。'},
+  {id:233,cat:'漢字の読み',q:'「困難」の読み方は？',cs:['こんなん','こんどう','こんわ','こんだん'],a:0,e:'困難はこんなんと読みます。やりにくくて苦しいことです。'},
+  {id:234,cat:'漢字の読み',q:'「努力」の読み方は？',cs:['どりょく','どりき','ぬりょく','どりか'],a:0,e:'努力はどりょくと読みます。目標に向かって力を尽くすことです。'},
+  {id:235,cat:'漢字の読み',q:'「記念」の読み方は？',cs:['きねん','きかん','きねい','きのう'],a:0,e:'記念はきねんと読みます。思い出として心にとどめることです。'},
+  {id:236,cat:'漢字の読み',q:'「変化」の読み方は？',cs:['へんか','へんこう','へんわ','へんが'],a:0,e:'変化はへんかと読みます。ものごとの状態が変わることです。'},
+  {id:237,cat:'漢字の読み',q:'「想像」の読み方は？',cs:['そうぞう','そうさく','そうろう','そうごう'],a:0,e:'想像はそうぞうと読みます。実際にないことを心の中で思い描くことです。'},
+  {id:238,cat:'漢字の読み',q:'「発見」の読み方は？',cs:['はっけん','はつけん','はっかん','はつかん'],a:0,e:'発見ははっけんと読みます。知られていなかったものを初めて見つけることです。'},
+  {id:239,cat:'漢字の読み',q:'「完成」の読み方は？',cs:['かんせい','かんなり','かんじょう','かんとう'],a:0,e:'完成はかんせいと読みます。すっかりできあがることです。'},
+  {id:240,cat:'漢字の読み',q:'「経験」の読み方は？',cs:['けいけん','けいかん','きょうけん','けいえん'],a:0,e:'経験はけいけんと読みます。実際に体験してわかることです。'},
+  {id:241,cat:'漢字の読み',q:'「判断」の読み方は？',cs:['はんだん','はんじゅん','はんのう','はんとう'],a:0,e:'判断ははんだんと読みます。ものごとをよく考えて決めることです。'},
+  {id:242,cat:'漢字の読み',q:'「失敗」の読み方は？',cs:['しっぱい','しつぱい','しっぱつ','しつはい'],a:0,e:'失敗はしっぱいと読みます。うまくいかないことです。'},
+  {id:243,cat:'漢字の読み',q:'「解決」の読み方は？',cs:['かいけつ','かいはつ','かいとく','かいかつ'],a:0,e:'解決はかいけつと読みます。問題や疑問などをうまく片付けることです。'},
+  {id:244,cat:'漢字の読み',q:'「準備」の読み方は？',cs:['じゅんび','じゅんぼ','じゅんみ','じゅんぴ'],a:0,e:'準備はじゅんびと読みます。物事に取りかかる前に整えることです。'},
+  {id:245,cat:'漢字の読み',q:'「集中」の読み方は？',cs:['しゅうちゅう','しゅうじゅ','しゅうそう','しゅうとう'],a:0,e:'集中はしゅうちゅうと読みます。一点に集まることや注意を向けることです。'},
+  {id:246,cat:'漢字の読み',q:'「理解」の読み方は？',cs:['りかい','りかつ','りわ','りこう'],a:0,e:'理解はりかいと読みます。意味や内容をよくわかることです。'},
+  {id:247,cat:'漢字の読み',q:'「必要」の読み方は？',cs:['ひつよう','ひっよう','ひつえん','ひつぼう'],a:0,e:'必要はひつようと読みます。なくてはならないことです。'},
+  {id:248,cat:'漢字の読み',q:'「注意」の読み方は？',cs:['ちゅうい','ちゅうえ','ちゅうに','ちゅうか'],a:0,e:'注意はちゅういと読みます。気をつけることや、心を向けることです。'},
+  {id:249,cat:'漢字の読み',q:'「進歩」の読み方は？',cs:['しんぽ','しんほ','しんぼ','すすみ'],a:0,e:'進歩はしんぽと読みます。よりよい状態に向かって進んでいくことです。'},
+  {id:250,cat:'漢字の読み',q:'「目標」の読み方は？',cs:['もくひょう','もくびょう','もくひょ','もくばい'],a:0,e:'目標はもくひょうと読みます。目指す目当てのことです。'},
+  {id:251,cat:'漢字の読み',q:'「礼儀」の読み方は？',cs:['れいぎ','れいぐ','れいき','れいじ'],a:0,e:'礼儀はれいぎと読みます。人とつき合う上での作法のことです。'},
+  {id:252,cat:'漢字の読み',q:'「挑戦」の読み方は？',cs:['ちょうせん','ちょうぜん','ちょうさ','ちょうたん'],a:0,e:'挑戦はちょうせんと読みます。難しいことに立ち向かうことです。'},
+  {id:253,cat:'漢字の読み',q:'「永遠」の読み方は？',cs:['えいえん','えいおん','えんえん','えいかん'],a:0,e:'永遠はえいえんと読みます。いつまでも続くことです。'},
+  {id:254,cat:'漢字の読み',q:'「感謝」の読み方は？',cs:['かんしゃ','かんしょ','かんさ','かんし'],a:0,e:'感謝はかんしゃと読みます。ありがたいと思う気持ちです。'},
+  {id:255,cat:'漢字の読み',q:'「勇気」の読み方は？',cs:['ゆうき','ゆうぎ','ゆき','いさみ'],a:0,e:'勇気はゆうきと読みます。恐れずに立ち向かう強い心のことです。'},
+  {id:256,cat:'漢字の読み',q:'「将来」の読み方は？',cs:['しょうらい','しょうらう','しょうれい','せいらい'],a:0,e:'将来はしょうらいと読みます。これからの先のことです。'},
+  {id:257,cat:'漢字の読み',q:'「競争」の読み方は？',cs:['きょうそう','きょうじょう','きょうさ','きょうせい'],a:0,e:'競争はきょうそうと読みます。互いに勝とうと争うことです。'},
+  {id:258,cat:'漢字の読み',q:'「協力」の読み方は？',cs:['きょうりょく','きょうりき','きょうろく','きょうりつ'],a:0,e:'協力はきょうりょくと読みます。力を合わせて助け合うことです。'},
+  {id:259,cat:'漢字の読み',q:'「状況」の読み方は？',cs:['じょうきょう','じょうきょ','じょうこう','じょうさ'],a:0,e:'状況はじょうきょうと読みます。その時のありさまや事情のことです。'},
+  {id:260,cat:'漢字の読み',q:'「増加」の読み方は？',cs:['ぞうか','ぞうが','そうか','ぞうこう'],a:0,e:'増加はぞうかと読みます。数や量が増えることです。'},
+  {id:261,cat:'漢字の読み',q:'「減少」の読み方は？',cs:['げんしょう','けんしょう','げんそう','げんじょう'],a:0,e:'減少はげんしょうと読みます。数や量が減ることです。'},
+  {id:262,cat:'漢字の読み',q:'「現象」の読み方は？',cs:['げんしょう','げんぞう','けんしょう','げんけい'],a:0,e:'現象はげんしょうと読みます。目に見える形で現れてくる事柄です。'},
+  {id:263,cat:'漢字の読み',q:'「衛星」の読み方は？',cs:['えいせい','えいさ','えいしょう','えいそ'],a:0,e:'衛星はえいせいと読みます。惑星の周りを回る天体のことです。'},
+  {id:264,cat:'漢字の読み',q:'「環境」の読み方は？',cs:['かんきょう','かんけい','かんごう','かんきょ'],a:0,e:'環境はかんきょうと読みます。生物をとりまく周りの状態のことです。'},
+  {id:265,cat:'漢字の読み',q:'「貿易」の読み方は？',cs:['ぼうえき','ぼうえい','もうえき','ぼうき'],a:0,e:'貿易はぼうえきと読みます。国と国との間でものを売り買いすることです。'},
+  {id:266,cat:'漢字の読み',q:'「農業」の読み方は？',cs:['のうぎょう','のうごう','のうぎ','なうぎょう'],a:0,e:'農業はのうぎょうと読みます。田畑を耕して作物を作ることです。'},
+  {id:267,cat:'漢字の読み',q:'「工業」の読み方は？',cs:['こうぎょう','こうごう','こうきょう','こうぎ'],a:0,e:'工業はこうぎょうと読みます。原料を加工して製品を作る産業です。'},
+  {id:268,cat:'漢字の読み',q:'「漁業」の読み方は？',cs:['ぎょぎょう','りょぎょう','ぎょごう','ぎょうぎょう'],a:0,e:'漁業はぎょぎょうと読みます。魚や貝などをとることを職業とすることです。'},
+  {id:269,cat:'漢字の読み',q:'「地震」の読み方は？',cs:['じしん','じしょ','じなど','ちしん'],a:0,e:'地震はじしんと読みます。地面がゆれる現象のことです。'},
+  {id:270,cat:'漢字の読み',q:'「台風」の読み方は？',cs:['たいふう','だいふう','たいほう','たいふ'],a:0,e:'台風はたいふうと読みます。強い熱帯低気圧が発達したものです。'},
+  {id:271,cat:'漢字の読み',q:'「噴火」の読み方は？',cs:['ふんか','ふんが','ふんき','ふっか'],a:0,e:'噴火はふんかと読みます。火山から溶岩や火山灰が噴き出すことです。'},
+  {id:272,cat:'漢字の読み',q:'「洪水」の読み方は？',cs:['こうずい','こうすい','こうづい','こうじゅい'],a:0,e:'洪水はこうずいと読みます。大雨などで川があふれることです。'},
+  {id:273,cat:'漢字の読み',q:'「干ばつ」の読み方は？',cs:['かんばつ','かんはつ','きんばつ','かんぱつ'],a:0,e:'干ばつはかんばつと読みます。雨が降らず水が不足することです。'},
+  {id:274,cat:'漢字の読み',q:'「資源」の読み方は？',cs:['しげん','しごん','しきん','しけん'],a:0,e:'資源はしげんと読みます。産業などに使われる原料や材料のことです。'},
+  {id:275,cat:'漢字の読み',q:'「人口」の読み方は？',cs:['じんこう','じんぐち','にんこう','じんくち'],a:0,e:'人口はじんこうと読みます。ある地域に住む人の数のことです。'},
+  {id:276,cat:'漢字の読み',q:'「面積」の読み方は？',cs:['めんせき','めんしゃく','めんさ','めんせい'],a:0,e:'面積はめんせきと読みます。平面の広さのことです。'},
+  {id:277,cat:'漢字の読み',q:'「縮小」の読み方は？',cs:['しゅくしょう','しゅくじょう','ちぢみ','しゅくそう'],a:0,e:'縮小はしゅくしょうと読みます。小さくちぢめることです。'},
+  {id:278,cat:'漢字の読み',q:'「拡大」の読み方は？',cs:['かくだい','かくたい','こうだい','かくどう'],a:0,e:'拡大はかくだいと読みます。広くしたり大きくしたりすることです。'},
+  {id:279,cat:'漢字の読み',q:'「供給」の読み方は？',cs:['きょうきゅう','きょうきゅ','こうきゅう','きょうきゅ'],a:0,e:'供給はきょうきゅうと読みます。必要なものを与えることです。'},
+  {id:280,cat:'漢字の読み',q:'「需要」の読み方は？',cs:['じゅよう','じゅおう','ずよう','じゅよ'],a:0,e:'需要はじゅようと読みます。必要として求めることです。'},
+  {id:281,cat:'漢字の読み',q:'「憲法」の読み方は？',cs:['けんぽう','けんほう','けんぼう','けんふ'],a:0,e:'憲法はけんぽうと読みます。国の基本的な決まりをまとめたものです。'},
+  {id:282,cat:'漢字の読み',q:'「国会」の読み方は？',cs:['こっかい','こくかい','こっかえ','こうかい'],a:0,e:'国会はこっかいと読みます。国の法律などを話し合って決める機関です。'},
+  {id:283,cat:'漢字の読み',q:'「内閣」の読み方は？',cs:['ないかく','うちかく','ないかつ','ないこく'],a:0,e:'内閣はないかくと読みます。行政の最高機関で総理大臣が率いる組織です。'},
+  {id:284,cat:'漢字の読み',q:'「裁判」の読み方は？',cs:['さいばん','さいはん','さいはい','さいらん'],a:0,e:'裁判はさいばんと読みます。法律によって争いごとを解決することです。'},
+  {id:285,cat:'漢字の読み',q:'「条約」の読み方は？',cs:['じょうやく','じょうやつ','じょうわく','じょやく'],a:0,e:'条約はじょうやくと読みます。国と国が約束する文書のことです。'},
+  {id:286,cat:'漢字の読み',q:'「歴史」の読み方は？',cs:['れきし','れきじ','れきす','れいし'],a:0,e:'歴史はれきしと読みます。昔から今までの出来事の記録のことです。'},
+  {id:287,cat:'漢字の読み',q:'「伝統」の読み方は？',cs:['でんとう','でんどう','てんとう','でんたつ'],a:0,e:'伝統はでんとうと読みます。昔から伝わってきた習慣や文化のことです。'},
+  {id:288,cat:'漢字の読み',q:'「文化」の読み方は？',cs:['ぶんか','ぶんが','もんか','ぶんわ'],a:0,e:'文化はぶんかと読みます。人間が生み出した生活の様式や価値観などです。'},
+  {id:289,cat:'漢字の読み',q:'「宗教」の読み方は？',cs:['しゅうきょう','しゅうきょ','しゅきょう','しょうきょう'],a:0,e:'宗教はしゅうきょうと読みます。神や仏を信じることにまつわることです。'},
+  {id:290,cat:'漢字の読み',q:'「芸術」の読み方は？',cs:['げいじゅつ','げいじつ','げいじゅ','げいそう'],a:0,e:'芸術はげいじゅつと読みます。絵画・音楽・文学など美を表現する活動です。'},
+  {id:291,cat:'漢字の読み',q:'「興味」の読み方は？',cs:['きょうみ','こうみ','きょうい','こうみ'],a:0,e:'興味はきょうみと読みます。関心を持って面白いと思う気持ちです。'},
+  {id:292,cat:'漢字の読み',q:'「影響」の読み方は？',cs:['えいきょう','えいごう','えいこう','えいきょ'],a:0,e:'影響はえいきょうと読みます。何かが他に作用を及ぼすことです。'},
+  {id:293,cat:'漢字の読み',q:'「距離」の読み方は？',cs:['きょり','きょうり','きょいり','こより'],a:0,e:'距離はきょりと読みます。二つの場所の間のへだたりのことです。'},
+  {id:294,cat:'漢字の読み',q:'「温暖化」の読み方は？',cs:['おんだんか','おんなんか','おんわか','おんたんか'],a:0,e:'温暖化はおんだんかと読みます。地球の気温が上がっていく現象です。'},
+  {id:295,cat:'漢字の読み',q:'「再生可能」の読み方は？',cs:['さいせいかのう','さいなりかのう','さいせいかつのう','さいせいかな'],a:0,e:'再生可能はさいせいかのうと読みます。何度でも使うことができるという意味です。'},
+  {id:296,cat:'漢字の読み',q:'「循環」の読み方は？',cs:['じゅんかん','じゅんがん','じゅんかい','じゅんわ'],a:0,e:'循環はじゅんかんと読みます。ぐるぐると回ること、繰り返すことです。'},
+  {id:297,cat:'漢字の読み',q:'「蒸発」の読み方は？',cs:['じょうはつ','しょうはつ','じょうほつ','じょうばつ'],a:0,e:'蒸発はじょうはつと読みます。液体が熱によって気体になることです。'},
+  {id:298,cat:'漢字の読み',q:'「凝固」の読み方は？',cs:['ぎょうこ','ぎょうご','こうご','ぎょうか'],a:0,e:'凝固はぎょうこと読みます。液体が固まって固体になることです。'},
+  {id:299,cat:'漢字の読み',q:'「溶解」の読み方は？',cs:['ようかい','ようげ','ようかつ','ようかえ'],a:0,e:'溶解はようかいと読みます。物質が液体に溶けることです。'},
+  {id:300,cat:'漢字の読み',q:'「酸素」の読み方は？',cs:['さんそ','さんす','さんぞ','さんしょ'],a:0,e:'酸素はさんそと読みます。空気の約21%を占める気体です。'},
+  {id:301,cat:'漢字の読み',q:'「窒素」の読み方は？',cs:['ちっそ','ちっさ','ちそ','ちっす'],a:0,e:'窒素はちっそと読みます。空気の約78%を占める気体です。'},
+  {id:302,cat:'漢字の読み',q:'「消化」の読み方は？',cs:['しょうか','しょうが','しょうかん','しょか'],a:0,e:'消化はしょうかと読みます。食べたものを体内で分解吸収することです。'},
+  {id:303,cat:'漢字の読み',q:'「呼吸」の読み方は？',cs:['こきゅう','こきゅ','こきょう','こうきゅう'],a:0,e:'呼吸はこきゅうと読みます。息を吸ったりはいたりすることです。'},
+  {id:304,cat:'漢字の読み',q:'「細胞」の読み方は？',cs:['さいぼう','さいほう','さいぼ','さいほ'],a:0,e:'細胞はさいぼうと読みます。生物の体を作る最も小さな単位です。'},
+  {id:305,cat:'漢字の読み',q:'「繁殖」の読み方は？',cs:['はんしょく','はんしゅく','はんじょく','はんしょ'],a:0,e:'繁殖ははんしょくと読みます。生物が子孫を増やすことです。'},
+  {id:306,cat:'漢字の読み',q:'「摩擦」の読み方は？',cs:['まさつ','まさく','ますり','まじょ'],a:0,e:'摩擦はまさつと読みます。物と物がこすれ合う現象や力のことです。'},
+  {id:307,cat:'漢字の読み',q:'「重力」の読み方は？',cs:['じゅうりょく','じゅうりき','ちょうりょく','じゅうろく'],a:0,e:'重力はじゅうりょくと読みます。地球が物を引き付ける力のことです。'},
+  {id:308,cat:'漢字の読み',q:'「浮力」の読み方は？',cs:['ふりょく','ふりき','うりょく','ふろく'],a:0,e:'浮力はふりょくと読みます。液体や気体が物を上に押し上げる力です。'},
+  {id:309,cat:'漢字の読み',q:'「密度」の読み方は？',cs:['みつど','みっど','みつどう','みつどく'],a:0,e:'密度はみつどと読みます。単位体積あたりの質量のことです。'},
+  {id:310,cat:'漢字の読み',q:'「抵抗」の読み方は？',cs:['ていこう','ていとう','ていかん','ていぎ'],a:0,e:'抵抗はていこうと読みます。力に逆らうことや、電気の流れにくさのことです。'},
+  {id:311,cat:'漢字の読み',q:'「磁石」の読み方は？',cs:['じしゃく','じいし','じせき','じしき'],a:0,e:'磁石はじしゃくと読みます。鉄などを引きつける力を持つ石や道具です。'},
+  {id:312,cat:'漢字の読み',q:'「電流」の読み方は？',cs:['でんりゅう','でんりゅ','でんなが','でんじゅ'],a:0,e:'電流はでんりゅうと読みます。電気が流れることやその量のことです。'},
+  {id:313,cat:'漢字の読み',q:'「光合成」の読み方は？',cs:['こうごうせい','こうがっせい','こうごうしょう','こうごせい'],a:0,e:'光合成はこうごうせいと読みます。植物が光を使って栄養分を作ることです。'},
+  {id:314,cat:'漢字の読み',q:'「蒸散」の読み方は？',cs:['じょうさん','じょうしゃ','しょうさん','じょさん'],a:0,e:'蒸散はじょうさんと読みます。植物が水分を水蒸気として放出することです。'},
+  {id:315,cat:'漢字の読み',q:'「地層」の読み方は？',cs:['ちそう','ちぞう','じそう','ちしょう'],a:0,e:'地層はちそうと読みます。砂や岩が積み重なった層のことです。'},
+  {id:316,cat:'漢字の読み',q:'「堆積」の読み方は？',cs:['たいせき','たいしゃく','たいせい','たいじゃく'],a:0,e:'堆積はたいせきと読みます。土砂などが積み重なることです。'},
+  {id:317,cat:'漢字の読み',q:'「侵食」の読み方は？',cs:['しんしょく','しんしょ','しんきょく','しんしく'],a:0,e:'侵食はしんしょくと読みます。水や風が岩や土地を削ることです。'},
+  {id:318,cat:'漢字の読み',q:'「恒星」の読み方は？',cs:['こうせい','こうじょう','こうしょう','かんせい'],a:0,e:'恒星はこうせいと読みます。自ら光を放つ星（太陽もその一つ）です。'},
+  {id:319,cat:'漢字の読み',q:'「惑星」の読み方は？',cs:['わくせい','わくしょう','かくせい','わくせ'],a:0,e:'惑星はわくせいと読みます。恒星の周りを回る天体（地球・火星など）です。'},
+  {id:320,cat:'漢字の読み',q:'「彗星」の読み方は？',cs:['すいせい','けいせい','かいせい','すいせ'],a:0,e:'彗星はすいせいと読みます。しっぽのように見える光を引く星です。'},
+  {id:321,cat:'漢字の読み',q:'「黙読」の読み方は？',cs:['もくどく','もくとく','もくよみ','もくなど'],a:0,e:'黙読はもくどくと読みます。声を出さずに読むことです。'},
+  {id:322,cat:'漢字の読み',q:'「音読」の読み方は？',cs:['おんどく','おとよみ','おんよ','こえどく'],a:0,e:'音読はおんどくと読みます。声に出して読むことです。'},
+  {id:323,cat:'漢字の読み',q:'「要約」の読み方は？',cs:['ようやく','ようやつ','ようわく','ようじゃく'],a:0,e:'要約はようやくと読みます。内容の大事な部分をまとめることです。'},
+  {id:324,cat:'漢字の読み',q:'「段落」の読み方は？',cs:['だんらく','だんかく','だんわく','たんらく'],a:0,e:'段落はだんらくと読みます。文章を意味のまとまりで区切った部分です。'},
+  {id:325,cat:'漢字の読み',q:'「比喩」の読み方は？',cs:['ひゆ','ひよ','ひぐ','ひに'],a:0,e:'比喩はひゆと読みます。別のものにたとえて表現する方法です。'},
+  {id:326,cat:'漢字の読み',q:'「随筆」の読み方は？',cs:['ずいひつ','ずいふで','すいひつ','ずいひ'],a:0,e:'随筆はずいひつと読みます。思ったことや体験を自由に書いた文章です。'},
+  {id:327,cat:'漢字の読み',q:'「詩歌」の読み方は？',cs:['しいか','しか','うたうた','しきょく'],a:0,e:'詩歌はしいかと読みます。詩と和歌をあわせた言い方です。'},
+  {id:328,cat:'漢字の読み',q:'「戯曲」の読み方は？',cs:['ぎきょく','きぎょく','ぎきょ','ぎきく'],a:0,e:'戯曲はぎきょくと読みます。演劇のために書かれた脚本のことです。'},
+  {id:329,cat:'漢字の読み',q:'「俳句」の読み方は？',cs:['はいく','はいきょく','はいか','はいこ'],a:0,e:'俳句ははいくと読みます。五・七・五の17音からなる短い詩です。'},
+  {id:330,cat:'漢字の読み',q:'「短歌」の読み方は？',cs:['たんか','たんが','みじかうた','たんき'],a:0,e:'短歌はたんかと読みます。五・七・五・七・七の31音からなる詩です。'},
+  {id:331,cat:'漢字の読み',q:'「源氏物語」の作者は？（読みで選ぶ）',cs:['むらさきしきぶ','せいしょうなごん','きのつらゆき','いずみしきぶ'],a:0,e:'源氏物語の作者は紫式部（むらさきしきぶ）です。平安時代の女性作家です。'},
+  {id:332,cat:'漢字の読み',q:'「枕草子」の作者は？（読みで選ぶ）',cs:['せいしょうなごん','むらさきしきぶ','きのつらゆき','よみびとしらず'],a:0,e:'枕草子の作者は清少納言（せいしょうなごん）です。平安時代の女性作家です。'},
+  {id:333,cat:'漢字の読み',q:'「古今和歌集」の編者の一人は？（読みで選ぶ）',cs:['きのつらゆき','むらさきしきぶ','せいしょうなごん','ふじわらのていか'],a:0,e:'古今和歌集の編者の一人は紀貫之（きのつらゆき）です。'},
+  {id:334,cat:'漢字の読み',q:'「奥の細道」の作者は？（読みで選ぶ）',cs:['まつおばしょう','よさぶそん','こばやしいっさ','たわらまち'],a:0,e:'奥の細道の作者は松尾芭蕉（まつおばしょう）です。江戸時代の俳人です。'},
+  {id:335,cat:'漢字の読み',q:'「隠居」の読み方は？',cs:['いんきょ','いんきゅ','かくきょ','いんご'],a:0,e:'隠居はいんきょと読みます。仕事をやめて静かに暮らすことです。'},
+  {id:336,cat:'漢字の読み',q:'「勘違い」の読み方は？',cs:['かんちがい','かんちがえ','かんちかい','かんちかえ'],a:0,e:'勘違いはかんちがいと読みます。思い違いをすることです。'},
+  {id:337,cat:'漢字の読み',q:'「曖昧」の読み方は？',cs:['あいまい','あいまえ','あいまん','あいもえ'],a:0,e:'曖昧はあいまいと読みます。はっきりしないこと、どちらとも言えることです。'},
+  {id:338,cat:'漢字の読み',q:'「傍観」の読み方は？',cs:['ぼうかん','ぼうがん','ほうかん','ぼうさ'],a:0,e:'傍観はぼうかんと読みます。そばで見ているだけで何もしないことです。'},
+  {id:339,cat:'漢字の読み',q:'「遺産」の読み方は？',cs:['いさん','いざん','いしょ','いさ'],a:0,e:'遺産はいさんと読みます。亡くなった人が残した財産や文化的なものです。'},
+  {id:340,cat:'漢字の読み',q:'「崩壊」の読み方は？',cs:['ほうかい','ほうわ','ほうくず','ほうかつ'],a:0,e:'崩壊はほうかいと読みます。くずれてこわれることです。'},
+  {id:341,cat:'漢字の読み',q:'「陳列」の読み方は？',cs:['ちんれつ','ちんりつ','じんれつ','ちんり'],a:0,e:'陳列はちんれつと読みます。品物などをならべて見せることです。'},
+  {id:342,cat:'漢字の読み',q:'「謝罪」の読み方は？',cs:['しゃざい','しゃざ','しゃじょう','しゃほう'],a:0,e:'謝罪はしゃざいと読みます。自分の過ちをわびることです。'},
+  {id:343,cat:'漢字の読み',q:'「賠償」の読み方は？',cs:['ばいしょう','ばいじょう','はいしょう','ばいそう'],a:0,e:'賠償はばいしょうと読みます。損害を与えた相手に埋め合わせをすることです。'},
+  {id:344,cat:'漢字の読み',q:'「貢献」の読み方は？',cs:['こうけん','こうかん','こうへん','こうこう'],a:0,e:'貢献はこうけんと読みます。役に立つことをして力になることです。'},
+  {id:345,cat:'漢字の読み',q:'「功績」の読み方は？',cs:['こうせき','こうじゃく','こうてき','こうさく'],a:0,e:'功績はこうせきと読みます。立派な仕事や手柄のことです。'},
+  {id:346,cat:'漢字の読み',q:'「穀物」の読み方は？',cs:['こくもつ','こくぶつ','こくもの','こくぶ'],a:0,e:'穀物はこくもつと読みます。米・麦・大豆などの食用になる作物です。'},
+  {id:347,cat:'漢字の読み',q:'「収穫」の読み方は？',cs:['しゅうかく','しゅうがく','しゅうか','しゅうこく'],a:0,e:'収穫はしゅうかくと読みます。農作物をとり入れることです。'},
+  {id:348,cat:'漢字の読み',q:'「肥料」の読み方は？',cs:['ひりょう','ひりゅう','こやし','ひりゃく'],a:0,e:'肥料はひりょうと読みます。植物の育ちをよくするために与えるものです。'},
+  {id:349,cat:'漢字の読み',q:'「緯度」の読み方は？',cs:['いど','えど','いと','いのど'],a:0,e:'緯度はいどと読みます。赤道からの南北の角度で場所を表すものです。'},
+  {id:350,cat:'漢字の読み',q:'「経度」の読み方は？',cs:['けいど','けいとく','きょうど','けいのど'],a:0,e:'経度はけいどと読みます。本初子午線からの東西の角度で場所を表すものです。'},
+  {id:351,cat:'漢字の読み',q:'「侯爵」の読み方は？',cs:['こうしゃく','こうじゃく','こうさく','こうせき'],a:0,e:'侯爵はこうしゃくと読みます。爵位の一つで公爵の下にあたります。'},
+  {id:352,cat:'漢字の読み',q:'「威厳」の読み方は？',cs:['いげん','いきん','いけん','いがん'],a:0,e:'威厳はいげんと読みます。おかしがたい重々しいようすのことです。'},
+  {id:353,cat:'漢字の読み',q:'「謙虚」の読み方は？',cs:['けんきょ','けんきゅ','けんご','けんきょう'],a:0,e:'謙虚はけんきょと読みます。おごらず控えめなようすのことです。'},
+  {id:354,cat:'漢字の読み',q:'「尊重」の読み方は？',cs:['そんちょう','そんじゅう','そんけい','そんたく'],a:0,e:'尊重はそんちょうと読みます。大切なものとして重んじることです。'},
+  {id:355,cat:'漢字の読み',q:'「激励」の読み方は？',cs:['げきれい','げきり','げきろう','げきれ'],a:0,e:'激励はげきれいと読みます。元気づけて励ますことです。'},
+  {id:356,cat:'漢字の読み',q:'「動揺」の読み方は？',cs:['どうよう','どうゆう','どうがい','どうちょ'],a:0,e:'動揺はどうようと読みます。心が乱れて落ち着かないことです。'},
+  {id:357,cat:'漢字の読み',q:'「郷愁」の読み方は？',cs:['きょうしゅう','きょうじゅ','こうしゅう','きょうしゅ'],a:0,e:'郷愁はきょうしゅうと読みます。ふるさとや過去を懐かしく思う気持ちです。'},
+  {id:358,cat:'漢字の読み',q:'「懐疑」の読み方は？',cs:['かいぎ','ふかぎ','かいきょう','かいごう'],a:0,e:'懐疑はかいぎと読みます。疑い深く思うことです。'},
+  {id:359,cat:'漢字の読み',q:'「批評」の読み方は？',cs:['ひひょう','ひひょ','ひびょう','ひぴょう'],a:0,e:'批評はひひょうと読みます。よし悪しを判断して述べることです。'},
+  {id:360,cat:'漢字の読み',q:'「逆境」の読み方は？',cs:['ぎゃっきょう','ぎゃくきょう','ぎゃっきょ','さかきょう'],a:0,e:'逆境はぎゃっきょうと読みます。うまくいかない苦しい状況のことです。'},
+  {id:361,cat:'漢字の読み',q:'「克服」の読み方は？',cs:['こくふく','こくぶ','こうふく','こっぷ'],a:0,e:'克服はこくふくと読みます。困難なことに打ち勝つことです。'},
+  {id:362,cat:'漢字の読み',q:'「辛抱」の読み方は？',cs:['しんぼう','しんほう','しんぼ','つらほう'],a:0,e:'辛抱はしんぼうと読みます。苦しさを耐えてがまんすることです。'},
+  {id:363,cat:'漢字の読み',q:'「忍耐」の読み方は？',cs:['にんたい','にんだい','しのたい','にんない'],a:0,e:'忍耐はにんたいと読みます。苦しみや困難をじっと耐えることです。'},
+  {id:364,cat:'漢字の読み',q:'「誠実」の読み方は？',cs:['せいじつ','せいしつ','まことじつ','せいみ'],a:0,e:'誠実はせいじつと読みます。真心があって正直なことです。'},
+  {id:365,cat:'漢字の読み',q:'「潔白」の読み方は？',cs:['けっぱく','けつはく','けっぱ','けつびゃく'],a:0,e:'潔白はけっぱくと読みます。うしろめたいことがないことです。'},
+  {id:366,cat:'漢字の読み',q:'「矛盾」の読み方は？',cs:['むじゅん','もじゅん','むしゅん','むじゅ'],a:0,e:'矛盾はむじゅんと読みます。二つのことが食い違ってつじつまが合わないことです。'},
+  {id:367,cat:'漢字の読み',q:'「逆説」の読み方は？',cs:['ぎゃくせつ','ぎゃくさ','ぎゃくせ','さかせつ'],a:0,e:'逆説はぎゃくせつと読みます。一見反対のようで実は真実をついている言葉です。'},
+  {id:368,cat:'漢字の読み',q:'「皮肉」の読み方は？',cs:['ひにく','ひにき','かわにく','ひいく'],a:0,e:'皮肉はひにくと読みます。遠回しに相手を批判する言い方です。'},
+  {id:369,cat:'漢字の読み',q:'「冗談」の読み方は？',cs:['じょうだん','じょうたん','じょだん','じょうだ'],a:0,e:'冗談はじょうだんと読みます。笑いを誘うためのふざけた言葉のことです。'},
+  {id:370,cat:'漢字の読み',q:'「真剣」の読み方は？',cs:['しんけん','しんかん','まけん','しんぎ'],a:0,e:'真剣はしんけんと読みます。本気で取り組むようすのことです。'},
+  {id:371,cat:'漢字の読み',q:'「余裕」の読み方は？',cs:['よゆう','よゆ','よゆり','よゆき'],a:0,e:'余裕はよゆうと読みます。ゆとりがあることです。'},
+  {id:372,cat:'漢字の読み',q:'「繁栄」の読み方は？',cs:['はんえい','はんえ','はんさか','はんよう'],a:0,e:'繁栄ははんえいと読みます。さかえてにぎわうことです。'},
+  {id:373,cat:'漢字の読み',q:'「衰退」の読み方は？',cs:['すいたい','すいだい','すいてい','おとろえ'],a:0,e:'衰退はすいたいと読みます。おとろえていくことです。'},
+  {id:374,cat:'漢字の読み',q:'「均衡」の読み方は？',cs:['きんこう','きんごう','きんわ','きんかく'],a:0,e:'均衡はきんこうと読みます。つり合いがとれていることです。'},
+  {id:375,cat:'漢字の読み',q:'「摂取」の読み方は？',cs:['せっしゅ','せつしゅ','せっしゅう','せつすい'],a:0,e:'摂取はせっしゅと読みます。食べ物や知識などを取り入れることです。'},
+  {id:376,cat:'漢字の読み',q:'「促進」の読み方は？',cs:['そくしん','そくせん','そくすすむ','そくしょう'],a:0,e:'促進はそくしんと読みます。物事が早く進むように後押しすることです。'},
+  {id:377,cat:'漢字の読み',q:'「抑制」の読み方は？',cs:['よくせい','よくじ','よくしん','よくせ'],a:0,e:'抑制はよくせいと読みます。程度が過ぎないように押さえることです。'},
+  {id:378,cat:'漢字の読み',q:'「偏見」の読み方は？',cs:['へんけん','へんかん','かたみ','へんじ'],a:0,e:'偏見はへんけんと読みます。かたよった見方や考えのことです。'},
+  {id:379,cat:'漢字の読み',q:'「寛容」の読み方は？',cs:['かんよう','かんなが','かんゆう','かんよ'],a:0,e:'寛容はかんようと読みます。心が広く、人を受け入れることです。'},
+  {id:380,cat:'漢字の読み',q:'「偉大」の読み方は？',cs:['いだい','いだ','えらだい','いだん'],a:0,e:'偉大はいだいと読みます。非常にすぐれていて立派なことです。'},
+
+  // ── 漢字の書き 381-520 ──
+  {id:381,cat:'漢字の書き',q:'「いっぱん」を漢字で書くと？',cs:['一般','一盤','一判','一版'],a:0,e:'一般（いっぱん）はひろく世間に通じていることです。「般」が正しい漢字です。'},
+  {id:382,cat:'漢字の書き',q:'「ぎむ」を漢字で書くと？',cs:['義務','疑務','議務','儀務'],a:0,e:'義務（ぎむ）はしなければならない責任や役割です。「義」「務」が正しい漢字です。'},
+  {id:383,cat:'漢字の書き',q:'「けんり」を漢字で書くと？',cs:['権利','権里','権理','勧利'],a:0,e:'権利（けんり）は正当に何かを主張できる資格です。「権」「利」が正しい漢字です。'},
+  {id:384,cat:'漢字の書き',q:'「きょういく」を漢字で書くと？',cs:['教育','教郁','教粋','興育'],a:0,e:'教育（きょういく）は知識や技能を教え育てることです。'},
+  {id:385,cat:'漢字の書き',q:'「せいじ」を漢字で書くと？',cs:['政治','政事','政時','制治'],a:0,e:'政治（せいじ）は国や地域を治めることです。'},
+  {id:386,cat:'漢字の書き',q:'「けいざい」を漢字で書くと？',cs:['経済','経斉','径済','軽済'],a:0,e:'経済（けいざい）は財やサービスの生産・流通・消費に関することです。'},
+  {id:387,cat:'漢字の書き',q:'「しゃかい」を漢字で書くと？',cs:['社会','社壊','社界','祉会'],a:0,e:'社会（しゃかい）は人が集まって生活する集団のことです。'},
+  {id:388,cat:'漢字の書き',q:'「じこく」を漢字で書くと？',cs:['時刻','時国','時刻','次刻'],a:0,e:'時刻（じこく）はある特定の時間の点のことです。'},
+  {id:389,cat:'漢字の書き',q:'「そうぞく」を漢字で書くと？',cs:['相続','争続','草続','想続'],a:0,e:'相続（そうぞく）は亡くなった人の財産を引き継ぐことです。'},
+  {id:390,cat:'漢字の書き',q:'「ふくし」を漢字で書くと？',cs:['福祉','副士','複詞','服誌'],a:0,e:'福祉（ふくし）は社会のみんなの幸せを守る制度や活動のことです。'},
+  {id:391,cat:'漢字の書き',q:'「しんらい」を漢字で書くと？',cs:['信頼','信頼','振頼','真頼'],a:0,e:'信頼（しんらい）は信じて頼ることです。「信」「頼」が正しい漢字です。'},
+  {id:392,cat:'漢字の書き',q:'「かんきょう」を漢字で書くと？',cs:['環境','環響','完境','管境'],a:0,e:'環境（かんきょう）は生物をとりまく周りの状態のことです。'},
+  {id:393,cat:'漢字の書き',q:'「こうきょう」（公共施設の公共）を漢字で書くと？',cs:['公共','公教','工共','貢共'],a:0,e:'公共（こうきょう）はみんなが共通に使うことのできることです。'},
+  {id:394,cat:'漢字の書き',q:'「へいわ」を漢字で書くと？',cs:['平和','平話','並和','平輪'],a:0,e:'平和（へいわ）は争いのない穏やかな状態のことです。'},
+  {id:395,cat:'漢字の書き',q:'「せんそう」を漢字で書くと？',cs:['戦争','戦走','戦雑','戦草'],a:0,e:'戦争（せんそう）は国と国などが武力で戦うことです。'},
+  {id:396,cat:'漢字の書き',q:'「どうとく」を漢字で書くと？',cs:['道徳','道得','同徳','堂徳'],a:0,e:'道徳（どうとく）は人として守るべき行動の規範のことです。'},
+  {id:397,cat:'漢字の書き',q:'「さんぎょう」を漢字で書くと？',cs:['産業','散業','算業','産行'],a:0,e:'産業（さんぎょう）は農業・工業・商業など経済活動全体のことです。'},
+  {id:398,cat:'漢字の書き',q:'「ゆしゅつ」を漢字で書くと？',cs:['輸出','輸立','諭出','輸術'],a:0,e:'輸出（ゆしゅつ）は国内の商品を外国に売ることです。'},
+  {id:399,cat:'漢字の書き',q:'「ゆにゅう」を漢字で書くと？',cs:['輸入','湯入','諭入','輸内'],a:0,e:'輸入（ゆにゅう）は外国から商品を買って入れることです。'},
+  {id:400,cat:'漢字の書き',q:'「かんさつ」を漢字で書くと？',cs:['観察','感察','看察','管察'],a:0,e:'観察（かんさつ）は注意深く見ることです。「観」「察」が正しい漢字です。'},
+  {id:401,cat:'漢字の書き',q:'「じっけん」を漢字で書くと？',cs:['実験','実賢','実現','実厳'],a:0,e:'実験（じっけん）は仮説を確かめるために試すことです。'},
+  {id:402,cat:'漢字の書き',q:'「かせつ」を漢字で書くと？',cs:['仮説','仮設','下説','花説'],a:0,e:'仮説（かせつ）はまだ証明されていない推測のことです。'},
+  {id:403,cat:'漢字の書き',q:'「けつろん」を漢字で書くと？',cs:['結論','決論','血論','傑論'],a:0,e:'結論（けつろん）は話し合いや考えがまとまった最終的な判断のことです。'},
+  {id:404,cat:'漢字の書き',q:'「ほうそく」を漢字で書くと？',cs:['法則','方測','宝則','法測'],a:0,e:'法則（ほうそく）はいつも成り立つきまりのことです。'},
+  {id:405,cat:'漢字の書き',q:'「じしゃく」を漢字で書くと？',cs:['磁石','磁積','地石','慈石'],a:0,e:'磁石（じしゃく）は鉄などを引きつける力を持つものです。'},
+  {id:406,cat:'漢字の書き',q:'「でんち」を漢字で書くと？',cs:['電池','電地','電知','電治'],a:0,e:'電池（でんち）は電気エネルギーを蓄えておく装置です。'},
+  {id:407,cat:'漢字の書き',q:'「こうげん」（光源）を漢字で書くと？',cs:['光源','光現','光元','光限'],a:0,e:'光源（こうげん）は光を発する源のことです。'},
+  {id:408,cat:'漢字の書き',q:'「はんしゃ」（反射）を漢字で書くと？',cs:['反射','反写','反社','反斜'],a:0,e:'反射（はんしゃ）は光や音が物に当たって跳ね返ることです。'},
+  {id:409,cat:'漢字の書き',q:'「くっせつ」を漢字で書くと？',cs:['屈折','屈節','屈切','窟折'],a:0,e:'屈折（くっせつ）は光や波が境界面で方向を変えることです。'},
+  {id:410,cat:'漢字の書き',q:'「でんどう」（電導）を漢字で書くと？',cs:['電導','電道','電銅','電得'],a:0,e:'電気伝導（でんどう）は電気が流れることです。「導」が正しい漢字です。'},
+  {id:411,cat:'漢字の書き',q:'「ようかい」（溶解）を漢字で書くと？',cs:['溶解','溶界','容解','溶壊'],a:0,e:'溶解（ようかい）は物質が液体に溶けることです。'},
+  {id:412,cat:'漢字の書き',q:'「ぎょうしゅく」を漢字で書くと？',cs:['凝縮','凝宿','疑縮','仰縮'],a:0,e:'凝縮（ぎょうしゅく）は気体が液体になることや、ぎゅっとまとまることです。'},
+  {id:413,cat:'漢字の書き',q:'「しつりょう」を漢字で書くと？',cs:['質量','質亮','質量','室量'],a:0,e:'質量（しつりょう）は物体そのものの量のことです（重さとは異なります）。'},
+  {id:414,cat:'漢字の書き',q:'「えいようそ」を漢字で書くと？',cs:['栄養素','栄要素','荣養素','永養素'],a:0,e:'栄養素（えいようそ）は体を動かすために必要な食物の成分です。'},
+  {id:415,cat:'漢字の書き',q:'「こうしん」（更新）を漢字で書くと？',cs:['更新','功新','更進','更振'],a:0,e:'更新（こうしん）は新しくすることです。'},
+  {id:416,cat:'漢字の書き',q:'「しょうひ」を漢字で書くと？',cs:['消費','消非','消悲','焼費'],a:0,e:'消費（しょうひ）は品物やエネルギーなどを使うことです。'},
+  {id:417,cat:'漢字の書き',q:'「せいさん」（生産）を漢字で書くと？',cs:['生産','生算','成産','製産'],a:0,e:'生産（せいさん）は品物を作ったり育てたりすることです。'},
+  {id:418,cat:'漢字の書き',q:'「りゅうつう」を漢字で書くと？',cs:['流通','流痛','留通','類通'],a:0,e:'流通（りゅうつう）は商品が生産者から消費者へ届くまでの流れです。'},
+  {id:419,cat:'漢字の書き',q:'「かかく」（価格）を漢字で書くと？',cs:['価格','花格','果格','化格'],a:0,e:'価格（かかく）は品物の値段のことです。'},
+  {id:420,cat:'漢字の書き',q:'「ぜいきん」を漢字で書くと？',cs:['税金','政金','製金','制金'],a:0,e:'税金（ぜいきん）は国や地方に納めるお金のことです。'},
+  {id:421,cat:'漢字の書き',q:'「じょうさんき」（蒸散気）ではなく「じょうきき」を漢字で書くと？',cs:['蒸気機','蒸気器','上気器','状気機'],a:0,e:'蒸気機関の「蒸気」は水が蒸発した気体のことです。'},
+  {id:422,cat:'漢字の書き',q:'「てっこう」（鉄鋼）を漢字で書くと？',cs:['鉄鋼','鉄鉱','鉄光','鉄剛'],a:0,e:'鉄鋼（てっこう）は製品に使われる鋼鉄のことです。'},
+  {id:423,cat:'漢字の書き',q:'「せんい」（繊維）を漢字で書くと？',cs:['繊維','繊緯','線維','鮮維'],a:0,e:'繊維（せんい）は糸のような細い材料のことです。'},
+  {id:424,cat:'漢字の書き',q:'「けいしき」（形式）を漢字で書くと？',cs:['形式','形職','型式','刑式'],a:0,e:'形式（けいしき）はものごとの外側のかたちや様式のことです。'},
+  {id:425,cat:'漢字の書き',q:'「ないよう」（内容）を漢字で書くと？',cs:['内容','内要','内庸','内葉'],a:0,e:'内容（ないよう）は中身のことです。'},
+  {id:426,cat:'漢字の書き',q:'「むじゅん」を漢字で書くと？',cs:['矛盾','無順','母旬','霧盾'],a:0,e:'矛盾（むじゅん）は二つのことが食い違ってつじつまが合わないことです。'},
+  {id:427,cat:'漢字の書き',q:'「ひかく」（比較）を漢字で書くと？',cs:['比較','比格','比画','比確'],a:0,e:'比較（ひかく）は二つ以上のものを比べることです。'},
+  {id:428,cat:'漢字の書き',q:'「そうてい」（想定）を漢字で書くと？',cs:['想定','早定','相定','草定'],a:0,e:'想定（そうてい）はあらかじめ考えておくことです。'},
+  {id:429,cat:'漢字の書き',q:'「ちょくせつ」を漢字で書くと？',cs:['直接','直節','直切','直折'],a:0,e:'直接（ちょくせつ）は間にものを介さないことです。'},
+  {id:430,cat:'漢字の書き',q:'「かんせつ」（間接）を漢字で書くと？',cs:['間接','間節','感接','幹接'],a:0,e:'間接（かんせつ）は間に何かを介することです。'},
+  {id:431,cat:'漢字の書き',q:'「ちょうわ」（調和）を漢字で書くと？',cs:['調和','調輪','帳和','超和'],a:0,e:'調和（ちょうわ）はうまくつり合ってまとまることです。'},
+  {id:432,cat:'漢字の書き',q:'「たいしょう」（対称）を漢字で書くと？',cs:['対称','対象','対将','対賞'],a:0,e:'対称（たいしょう）はものが互いに対応してつり合っていることです。'},
+  {id:433,cat:'漢字の書き',q:'「そうぞう」（創造）を漢字で書くと？',cs:['創造','創想','操造','草造'],a:0,e:'創造（そうぞう）は新しいものを作り出すことです。'},
+  {id:434,cat:'漢字の書き',q:'「どくとく」（独特）を漢字で書くと？',cs:['独特','独得','独徳','独択'],a:0,e:'独特（どくとく）はそれだけに特有のものであることです。'},
+  {id:435,cat:'漢字の書き',q:'「ふつう」（普通）を漢字で書くと？',cs:['普通','不通','付通','布通'],a:0,e:'普通（ふつう）はごくありふれていることです。「普」「通」が正しい漢字です。'},
+  {id:436,cat:'漢字の書き',q:'「とくしゅ」（特殊）を漢字で書くと？',cs:['特殊','特種','特集','特珠'],a:0,e:'特殊（とくしゅ）は普通とはかなり違っている特別な状態のことです。'},
+  {id:437,cat:'漢字の書き',q:'「ふくすう」（複数）を漢字で書くと？',cs:['複数','副数','腹数','複汁'],a:0,e:'複数（ふくすう）は二つ以上あることです。'},
+  {id:438,cat:'漢字の書き',q:'「たんすう」（単数）を漢字で書くと？',cs:['単数','短数','段数','担数'],a:0,e:'単数（たんすう）は一つだけであることです。'},
+  {id:439,cat:'漢字の書き',q:'「こうじ」（工事）を漢字で書くと？',cs:['工事','工治','功事','巧事'],a:0,e:'工事（こうじ）は建物や道路などを建てたり直したりする作業です。'},
+  {id:440,cat:'漢字の書き',q:'「たてもの」を漢字で書くと？',cs:['建物','建者','建仕','立物'],a:0,e:'建物（たてもの）は建築された家や施設のことです。'},
+  {id:441,cat:'漢字の書き',q:'「てつどう」（鉄道）を漢字で書くと？',cs:['鉄道','鉄導','轍道','鉄陶'],a:0,e:'鉄道（てつどう）は線路の上を走る乗り物の交通機関です。'},
+  {id:442,cat:'漢字の書き',q:'「みなと」（港）を漢字で書くと？',cs:['港','湊','洸','浜'],a:0,e:'港（みなと）は船が停泊できる場所のことです。'},
+  {id:443,cat:'漢字の書き',q:'「きょかい」（漁界でなく「漁海」の読みが「ぎょかい」）「すいさん」を漢字で書くと？',cs:['水産','水算','水散','水参'],a:0,e:'水産（すいさん）は海・川・湖などから水産物をとることです。'},
+  {id:444,cat:'漢字の書き',q:'「しぜん」（自然）を漢字で書くと？',cs:['自然','自燃','字然','辞然'],a:0,e:'自然（しぜん）は人の手が加わっていない本来の姿のことです。'},
+  {id:445,cat:'漢字の書き',q:'「ほごする」（保護する）の「保護」を漢字で書くと？',cs:['保護','保固','宝護','保語'],a:0,e:'保護（ほご）は守ることです。「保」「護」が正しい漢字です。'},
+  {id:446,cat:'漢字の書き',q:'「ぜつめつ」（絶滅）を漢字で書くと？',cs:['絶滅','絶拭','絶蔑','截滅'],a:0,e:'絶滅（ぜつめつ）は生物の種が完全にいなくなることです。'},
+  {id:447,cat:'漢字の書き',q:'「いでんし」（遺伝子）を漢字で書くと？',cs:['遺伝子','遺電子','異伝子','衣伝子'],a:0,e:'遺伝子（いでんし）は生物の性質を次世代に伝える設計図のようなものです。'},
+  {id:448,cat:'漢字の書き',q:'「はっこう」（発酵）を漢字で書くと？',cs:['発酵','発交','発攻','発光'],a:0,e:'発酵（はっこう）は微生物が有機物を分解する現象で、パンやみそに使われます。'},
+  {id:449,cat:'漢字の書き',q:'「ちきゅう」（地球）を漢字で書くと？',cs:['地球','地求','地久','地玖'],a:0,e:'地球（ちきゅう）は私たちが住んでいる惑星のことです。'},
+  {id:450,cat:'漢字の書き',q:'「たいよう」（太陽）を漢字で書くと？',cs:['太陽','太揚','大陽','太洋'],a:0,e:'太陽（たいよう）は地球の周りを回る恒星のことです。'},
+  {id:451,cat:'漢字の書き',q:'「ぼうけん」（冒険）を漢字で書くと？',cs:['冒険','防険','望険','暴険'],a:0,e:'冒険（ぼうけん）は危険を覚悟で未知のことに挑むことです。'},
+  {id:452,cat:'漢字の書き',q:'「たんけん」（探検）を漢字で書くと？',cs:['探検','探険','探験','探倹'],a:0,e:'探検（たんけん）は未知の場所を調べるために行くことです。'},
+  {id:453,cat:'漢字の書き',q:'「はっくつ」（発掘）を漢字で書くと？',cs:['発掘','発窟','発屈','発堀'],a:0,e:'発掘（はっくつ）は土の中から埋まっているものを掘り出すことです。'},
+  {id:454,cat:'漢字の書き',q:'「せんぞ」（先祖）を漢字で書くと？',cs:['先祖','先組','先租','仙祖'],a:0,e:'先祖（せんぞ）は自分より前の世代の親族のことです。'},
+  {id:455,cat:'漢字の書き',q:'「しそん」（子孫）を漢字で書くと？',cs:['子孫','子損','子尊','子村'],a:0,e:'子孫（しそん）は自分の子・孫など後の世代の人たちのことです。'},
+  {id:456,cat:'漢字の書き',q:'「はいけい」（背景）を漢字で書くと？',cs:['背景','背系','倍景','拝景'],a:0,e:'背景（はいけい）は後ろに見える景色や、事情・理由のことです。'},
+  {id:457,cat:'漢字の書き',q:'「ぐたいてき」（具体的）を漢字で書くと？',cs:['具体的','具代的','躯体的','愚体的'],a:0,e:'具体的（ぐたいてき）ははっきりとした実際の形があることです。'},
+  {id:458,cat:'漢字の書き',q:'「ちゅうしょうてき」（抽象的）を漢字で書くと？',cs:['抽象的','注象的','抽像的','抽商的'],a:0,e:'抽象的（ちゅうしょうてき）は具体性がなくぼんやりとしていることです。'},
+  {id:459,cat:'漢字の書き',q:'「きょうみ」（興味）を漢字で書くと？',cs:['興味','興見','共味','響味'],a:0,e:'興味（きょうみ）は関心を持って面白いと思う気持ちです。'},
+  {id:460,cat:'漢字の書き',q:'「かんしん」（関心）を漢字で書くと？',cs:['関心','感心','歓心','観心'],a:0,e:'関心（かんしん）はある事柄に気持ちが向くことです。「関」「心」が正しい漢字です。'},
+  {id:461,cat:'漢字の書き',q:'「ちょうせん」（挑戦）を漢字で書くと？',cs:['挑戦','跳戦','超戦','調戦'],a:0,e:'挑戦（ちょうせん）は難しいことに立ち向かうことです。'},
+  {id:462,cat:'漢字の書き',q:'「ゆうしょう」（優勝）を漢字で書くと？',cs:['優勝','勇勝','有勝','遊勝'],a:0,e:'優勝（ゆうしょう）は競争で一番になることです。'},
+  {id:463,cat:'漢字の書き',q:'「はいぼく」（敗北）を漢字で書くと？',cs:['敗北','敗南','敗牧','配北'],a:0,e:'敗北（はいぼく）は争いや試合で負けることです。'},
+  {id:464,cat:'漢字の書き',q:'「きょうそう」（競争）を漢字で書くと？',cs:['競争','競走','競草','共争'],a:0,e:'競争（きょうそう）は互いに勝とうと争うことです。'},
+  {id:465,cat:'漢字の書き',q:'「きょうりょく」（協力）を漢字で書くと？',cs:['協力','共力','脅力','胸力'],a:0,e:'協力（きょうりょく）は力を合わせて助け合うことです。'},
+  {id:466,cat:'漢字の書き',q:'「はあく」（把握）を漢字で書くと？',cs:['把握','破握','波握','巴握'],a:0,e:'把握（はあく）はしっかりとつかむこと・理解することです。'},
+  {id:467,cat:'漢字の書き',q:'「ちしき」（知識）を漢字で書くと？',cs:['知識','知志気','知式','智識'],a:0,e:'知識（ちしき）は学んで得たことや情報のことです。'},
+  {id:468,cat:'漢字の書き',q:'「けいけん」（経験）を漢字で書くと？',cs:['経験','経堅','景験','軽験'],a:0,e:'経験（けいけん）は実際に体験してわかることです。'},
+  {id:469,cat:'漢字の書き',q:'「そうだん」（相談）を漢字で書くと？',cs:['相談','相弾','想談','草談'],a:0,e:'相談（そうだん）は意見を聞いたり話し合ったりすることです。'},
+  {id:470,cat:'漢字の書き',q:'「かいぜん」（改善）を漢字で書くと？',cs:['改善','改前','改戦','解善'],a:0,e:'改善（かいぜん）は悪いところを直してよくすることです。'},
+  {id:471,cat:'漢字の書き',q:'「ようきゅう」（要求）を漢字で書くと？',cs:['要求','用求','要救','要丘'],a:0,e:'要求（ようきゅう）は必要なことを求めることです。'},
+  {id:472,cat:'漢字の書き',q:'「きょひ」（拒否）を漢字で書くと？',cs:['拒否','距否','拒非','巨否'],a:0,e:'拒否（きょひ）は要求などをことわることです。'},
+  {id:473,cat:'漢字の書き',q:'「こうていする」（肯定する）の「肯定」を漢字で書くと？',cs:['肯定','肯亭','恒定','肯貞'],a:0,e:'肯定（こうてい）はそうだと認めることです。'},
+  {id:474,cat:'漢字の書き',q:'「ひてい」（否定）を漢字で書くと？',cs:['否定','非定','被定','秘定'],a:0,e:'否定（ひてい）はそうではないと認めないことです。'},
+  {id:475,cat:'漢字の書き',q:'「せつめい」（説明）を漢字で書くと？',cs:['説明','説命','雪明','節明'],a:0,e:'説明（せつめい）はわかるように話すことです。'},
+  {id:476,cat:'漢字の書き',q:'「りかい」（理解）を漢字で書くと？',cs:['理解','利解','理壊','理回'],a:0,e:'理解（りかい）は意味や内容をよくわかることです。'},
+  {id:477,cat:'漢字の書き',q:'「かくにん」（確認）を漢字で書くと？',cs:['確認','確認','格認','各認'],a:0,e:'確認（かくにん）はたしかめることです。'},
+  {id:478,cat:'漢字の書き',q:'「こうりょ」（考慮）を漢字で書くと？',cs:['考慮','考旅','考虜','孝慮'],a:0,e:'考慮（こうりょ）はいろいろと考えに入れることです。'},
+  {id:479,cat:'漢字の書き',q:'「てきせつ」（適切）を漢字で書くと？',cs:['適切','適折','適節','摘切'],a:0,e:'適切（てきせつ）はちょうどよく当てはまっていることです。'},
+  {id:480,cat:'漢字の書き',q:'「えんりょ」（遠慮）を漢字で書くと？',cs:['遠慮','遠虜','遠旅','遠量'],a:0,e:'遠慮（えんりょ）は相手を気遣ってひかえることです。'},
+  {id:481,cat:'漢字の書き',q:'「さっかく」（錯覚）を漢字で書くと？',cs:['錯覚','錯角','錯臼','索覚'],a:0,e:'錯覚（さっかく）は実際と違って感じ取ってしまうことです。'},
+  {id:482,cat:'漢字の書き',q:'「しんちょう」（慎重）を漢字で書くと？',cs:['慎重','深重','信重','真重'],a:0,e:'慎重（しんちょう）は注意深く落ち着いて行動するようすです。'},
+  {id:483,cat:'漢字の書き',q:'「むぼうび」（無防備）を漢字で書くと？',cs:['無防備','無防美','無砲備','無封備'],a:0,e:'無防備（むぼうび）は身を守る準備が全くないことです。'},
+  {id:484,cat:'漢字の書き',q:'「おんだんか」（温暖化）を漢字で書くと？',cs:['温暖化','温難化','暖温化','温段化'],a:0,e:'温暖化（おんだんか）は地球の気温が上がっていく現象です。'},
+  {id:485,cat:'漢字の書き',q:'「さいがい」（災害）を漢字で書くと？',cs:['災害','再害','差害','採害'],a:0,e:'災害（さいがい）は地震・台風など自然の力による被害のことです。'},
+  {id:486,cat:'漢字の書き',q:'「ひがい」（被害）を漢字で書くと？',cs:['被害','比害','皮害','悲害'],a:0,e:'被害（ひがい）は害を受けることです。'},
+  {id:487,cat:'漢字の書き',q:'「ふっこう」（復興）を漢字で書くと？',cs:['復興','服興','復功','腹興'],a:0,e:'復興（ふっこう）は一度ダメになったものが再びさかえることです。'},
+  {id:488,cat:'漢字の書き',q:'「ひなん」（避難）を漢字で書くと？',cs:['避難','非難','被難','悲難'],a:0,e:'避難（ひなん）は危険な場所から安全な場所へ逃げることです。'},
+  {id:489,cat:'漢字の書き',q:'「きょうじゅ」（享受）を漢字で書くと？',cs:['享受','教受','供受','教授'],a:0,e:'享受（きょうじゅ）は恩恵などを受けて自分のものにすることです。'},
+  {id:490,cat:'漢字の書き',q:'「せいびする」（整備する）の「整備」を漢字で書くと？',cs:['整備','正備','製備','精備'],a:0,e:'整備（せいび）は整えて用意を完全にしておくことです。'},
+  {id:491,cat:'漢字の書き',q:'「こうぞう」（構造）を漢字で書くと？',cs:['構造','構象','講造','功造'],a:0,e:'構造（こうぞう）は組み立ての様式やつくりのことです。'},
+  {id:492,cat:'漢字の書き',q:'「はんい」（範囲）を漢字で書くと？',cs:['範囲','反囲','判囲','版囲'],a:0,e:'範囲（はんい）はある物事の広がりや限度のことです。'},
+  {id:493,cat:'漢字の書き',q:'「げんかい」（限界）を漢字で書くと？',cs:['限界','減界','原界','厳界'],a:0,e:'限界（げんかい）はこれ以上はできないという境目のことです。'},
+  {id:494,cat:'漢字の書き',q:'「くだもの」を漢字で書くと？',cs:['果物','菓物','花物','苦物'],a:0,e:'果物（くだもの）は木になる甘い実のことです。'},
+  {id:495,cat:'漢字の書き',q:'「やさい」を漢字で書くと？',cs:['野菜','矢彩','野采','冶菜'],a:0,e:'野菜（やさい）は食用にする植物の総称です。'},
+  {id:496,cat:'漢字の書き',q:'「うみ」（海）を漢字で書くと？',cs:['海','湖','沼','池'],a:0,e:'海（うみ）は広く深い塩水の水域のことです。'},
+  {id:497,cat:'漢字の書き',q:'「やま」（山）を漢字で書くと？',cs:['山','岳','峰','丘'],a:0,e:'山（やま）は地面が周りより高く盛り上がったところです。'},
+  {id:498,cat:'漢字の書き',q:'「はる」（春）を漢字で書くと？',cs:['春','秋','夏','冬'],a:0,e:'春（はる）は冬の次の季節で、暖かくなる時期です。'},
+  {id:499,cat:'漢字の書き',q:'「あさ」（朝）を漢字で書くと？',cs:['朝','晩','昼','夕'],a:0,e:'朝（あさ）は一日の始まりの時間帯のことです。'},
+  {id:500,cat:'漢字の書き',q:'「たのしい」（楽しい）の「楽」を漢字で書くと？',cs:['楽','樂','薬','落'],a:0,e:'楽（たの）しいの「楽」は「楽しい」「楽しむ」という意味のほか「音楽」の意味もある字です。'},
+  {id:501,cat:'漢字の書き',q:'「ほんもの」（本物）を漢字で書くと？',cs:['本物','本者','本者','本品'],a:0,e:'本物（ほんもの）は偽物でない真物のことです。'},
+  {id:502,cat:'漢字の書き',q:'「ようじ」（用事）を漢字で書くと？',cs:['用事','用自','用司','庸事'],a:0,e:'用事（ようじ）はしなければならないことや用件のことです。'},
+  {id:503,cat:'漢字の書き',q:'「まにあう」（間に合う）を漢字で書くと？',cs:['間に合う','万に合う','問に合う','間に合う'],a:0,e:'間に合う（まにあう）は時間に遅れないことや役に立つことです。'},
+  {id:504,cat:'漢字の書き',q:'「ていねい」（丁寧）を漢字で書くと？',cs:['丁寧','丁寧','定寧','亭寧'],a:0,e:'丁寧（ていねい）は心を込めてきちんとするようすです。'},
+  {id:505,cat:'漢字の書き',q:'「うやまう」（敬う）の「敬」を漢字で書くと？',cs:['敬','傾','警','軽'],a:0,e:'敬（うやま）うの「敬」はうやまい大切にする意味の漢字です。'},
+  {id:506,cat:'漢字の書き',q:'「ざんねん」（残念）を漢字で書くと？',cs:['残念','残捻','惜念','残粘'],a:0,e:'残念（ざんねん）は思い通りにならず、もったいなく思うことです。'},
+  {id:507,cat:'漢字の書き',q:'「しんけん」（真剣）を漢字で書くと？',cs:['真剣','真拳','信剣','神剣'],a:0,e:'真剣（しんけん）は本気で取り組むようすのことです。'},
+  {id:508,cat:'漢字の書き',q:'「おだやか」（穏やか）の「穏」を漢字で書くと？',cs:['穏','隠','稳','蕰'],a:0,e:'穏（おだ）やかは静かで落ち着いているようすです。'},
+  {id:509,cat:'漢字の書き',q:'「うれしい」（嬉しい）の「嬉」を漢字で書くと？',cs:['嬉','嬉','喜','嬉'],a:0,e:'嬉（うれ）しいはうれしい気持ちの「嬉」という漢字を使います。'},
+  {id:510,cat:'漢字の書き',q:'「かなしい」（悲しい）の「悲」を漢字で書くと？',cs:['悲','哀','悲','非'],a:0,e:'悲（かな）しいは心が痛む気持ちのことです。'},
+  {id:511,cat:'漢字の書き',q:'「おそれ」（恐れ）の「恐」を漢字で書くと？',cs:['恐','怖','恐','畏'],a:0,e:'恐れ（おそれ）のこわいという感情を表す漢字は「恐」です。'},
+  {id:512,cat:'漢字の書き',q:'「はげしい」（激しい）の「激」を漢字で書くと？',cs:['激','烈','劇','撃'],a:0,e:'激（はげ）しいは勢いや程度が非常に強いことを表す漢字「激」を使います。'},
+  {id:513,cat:'漢字の書き',q:'「やわらかい」（柔らかい）の「柔」を漢字で書くと？',cs:['柔','軟','揉','柔'],a:0,e:'柔（やわ）らかいはかたくなく弾力があることで「柔」を使います。'},
+  {id:514,cat:'漢字の書き',q:'「ふるえる」（震える）の「震」を漢字で書くと？',cs:['震','振','震','揺'],a:0,e:'震（ふる）えるはがたがたと体がゆれることで「震」を使います。'},
+  {id:515,cat:'漢字の書き',q:'「かがやく」（輝く）の「輝」を漢字で書くと？',cs:['輝','光','煌','煌'],a:0,e:'輝（かがや）くはきらきらと光ることで「輝」を使います。'},
+  {id:516,cat:'漢字の書き',q:'「ひびく」（響く）の「響」を漢字で書くと？',cs:['響','鐘','響','音'],a:0,e:'響（ひび）くは音が広がることで「響」を使います。'},
+  {id:517,cat:'漢字の書き',q:'「あらわれる」（現れる）の「現」を漢字で書くと？',cs:['現','表','顕','見'],a:0,e:'現（あらわ）れるは姿が見えてくることで「現」を使います。'},
+  {id:518,cat:'漢字の書き',q:'「きえる」（消える）の「消」を漢字で書くと？',cs:['消','去','失','滅'],a:0,e:'消（き）えるはなくなることで「消」を使います。'},
+  {id:519,cat:'漢字の書き',q:'「すすむ」（進む）の「進」を漢字で書くと？',cs:['進','伸','薦','芯'],a:0,e:'進（すす）むは前に動いていくことで「進」を使います。'},
+  {id:520,cat:'漢字の書き',q:'「しりぞく」（退く）の「退」を漢字で書くと？',cs:['退','引','後','帰'],a:0,e:'退（しりぞ）くは後ろに下がることで「退」を使います。'},
+
+  // ── ことわざ 521-640 ──
+  {id:521,cat:'ことわざ',q:'「雨降って地固まる」の意味は？',cs:['もめごとの後かえってよい関係になる','雨が降ると土がしっかりする','苦労した後に喜びが来る','悪いことの後には必ず良いことがある'],a:0,e:'雨が降ると地盤が固まることから、争い事や困難の後かえって事態が安定することのたとえです。'},
+  {id:522,cat:'ことわざ',q:'「情けは人の為ならず」の意味は？',cs:['人に親切にすることは巡り巡って自分の利益になる','他人に情けをかけるのは良くない','人を助けすぎると依存させてしまう','情けは相手のためにならない'],a:0,e:'人に親切にすることは、いつか巡り巡って自分に返ってくるという意味です。「人の為にならない」という意味ではないので注意が必要です。'},
+  {id:523,cat:'ことわざ',q:'「覆水盆に返らず」の意味は？',cs:['一度してしまったことは取り返しがつかない','大切なものは慎重に扱え','器に入れた水は大事にすべきだ','失敗を繰り返してはならない'],a:0,e:'盆（器）からこぼれた水は元には戻せないことから、一度起きてしまったことは元には戻せないという意味です。'},
+  {id:524,cat:'ことわざ',q:'「犬も歩けば棒に当たる」の現代の主な意味は？',cs:['行動すれば思わぬ幸運に出会う','家でじっとしている方が安全だ','勇気を持って前に出れば必ず成功する','犬は散歩をすると元気になる'],a:0,e:'現代では主に「行動すれば思わぬ幸運に出会える」という意味で使われます。積極的に動くことで思いがけない良いことに出会えるということです。'},
+  {id:525,cat:'ことわざ',q:'「笑う門には福来る」の意味は？',cs:['いつも笑顔でいる家には幸福が訪れる','笑いが絶えない人は長生きする','笑顔でいれば友達が増える','明るく笑えば病気が治る'],a:0,e:'いつも笑いが絶えず明るい家庭には、自然と幸運が訪れるという意味です。'},
+  {id:526,cat:'ことわざ',q:'「猿も木から落ちる」の意味は？',cs:['名人でも時には失敗することがある','どんなに練習しても失敗することがある','油断すると失敗する','得意なことほど失敗しやすい'],a:0,e:'木登りが得意な猿でも時には落ちることから、名人・達人でも失敗することがあるという意味です。'},
+  {id:527,cat:'ことわざ',q:'「二兎を追う者は一兎をも得ず」の意味は？',cs:['欲張って二つを同時に追うと両方とも失敗する','二つのことを同時にやれば一つは成功する','焦らず一つ一つやることが大切','二匹のうさぎは必ず逃げてしまう'],a:0,e:'二匹のうさぎを同時に追えばどちらも捕まえられないことから、欲張ると結局どちらも失うという意味です。'},
+  {id:528,cat:'ことわざ',q:'「七転び八起き」と同じ意味のことわざは？',cs:['何度倒れても立ち上がる','七回失敗しても八回目は成功する','失敗の数より成功の数が多ければよい','粘り強く挑戦し続ける'],a:0,e:'七転び八起きは何度失敗してもあきらめずに立ち上がるという意味のことわざです。転んだ回数より起きた回数が一つ多いことがポイントです。'},
+  {id:529,cat:'ことわざ',q:'「百聞は一見に如かず」の意味は？',cs:['百回聞くより一度直接見た方がよくわかる','百回練習するより一回試した方がよい','聞くより見ることの方が大切だ','話を聞くより実際にやってみるべきだ'],a:0,e:'百回聞くよりも一度自分の目で見る方がよく分かるという意味です。'},
+  {id:530,cat:'ことわざ',q:'「虎穴に入らずんば虎子を得ず」の意味は？',cs:['危険を冒さなければ大きな成果は得られない','勇気を持って困難に立ち向かえ','大きな目標には大きなリスクが伴う','チャンスは危険の中にある'],a:0,e:'虎の穴に入らなければ虎の子を捕まえられないことから、危険を冒さなければ大きな成果は得られないという意味です。'},
+  {id:531,cat:'ことわざ',q:'「知らぬが仏」の意味は？',cs:['知らないでいる方が穏やかでいられる','仏様だけが真実を知っている','知識がなければ仏になれる','愚かな者ほど幸せだ'],a:0,e:'悪いことや不愉快なことを知らずにいる方が、心穏やかでいられるという意味です。'},
+  {id:532,cat:'ことわざ',q:'「親の心子知らず」の意味は？',cs:['子は親がどれほど心配しているかわからない','親の気持ちは子どもには伝わらない','親と子では考え方が違う','子どもは親の苦労を知らない'],a:0,e:'子どもは親がどれほど心配し愛情を注いでいるかを知らないでいるという意味です。'},
+  {id:533,cat:'ことわざ',q:'「子はかすがい」の意味は？',cs:['子どもが夫婦の絆をつなぎとめる','子どもは家庭の要である','子どもがいると家族が安定する','子は親の生きがいになる'],a:0,e:'かすがいとは木材をつなぐ金具で、子が夫婦の仲をつなぎとめる存在であるという意味です。'},
+  {id:534,cat:'ことわざ',q:'「火のないところに煙は立たぬ」の意味は？',cs:['うわさが立つには必ず何らかの根拠がある','うわさはすぐに消える','根拠のないうわさは信じるな','うわさはどこからともなく生まれる'],a:0,e:'火がなければ煙は出ないように、うわさが立つには何かしら根拠があるものだという意味です。'},
+  {id:535,cat:'ことわざ',q:'「光陰矢の如し」の意味は？',cs:['時間はあっという間に過ぎていく','若いうちに努力すべきだ','時は金なりと同じ意味','過去は取り戻せない'],a:0,e:'光（日）と陰（月）は矢のように速く、時間はたいへん速く過ぎていくという意味です。'},
+  {id:536,cat:'ことわざ',q:'「善は急げ」の意味は？',cs:['よいと思ったことはすぐに実行せよ','善い行いは急いでするべきだ','急いでよいことをすると運が開ける','機会を逃さないようにしなさい'],a:0,e:'よいことだと判断したらためらわずにすぐ実行しなさいという意味です。'},
+  {id:537,cat:'ことわざ',q:'「知らぬが仏」の意味は？',cs:['知らないでいる方が穏やかでいられる','無知は幸せをもたらす','知らないことは許される','仏様は全てを知っている'],a:0,e:'何も知らない人は、腹を立てることもなく仏のように穏やかでいられるという意味です。'},
+  {id:538,cat:'ことわざ',q:'「捨てる神あれば拾う神あり」の意味は？',cs:['見捨てる人がいれば助けてくれる人もいる','世の中は公平にできている','不運があれば必ず幸運も来る','どんな状況でも希望を持て'],a:0,e:'一方で見捨てる人がいても、他方で助けてくれる人もいるという意味で、希望を持てという教えです。'},
+  {id:539,cat:'ことわざ',q:'「朱に交われば赤くなる」の意味は？',cs:['人は付き合う仲間によって良くも悪くも影響される','努力すれば誰でも変われる','赤い色は人を元気にさせる','環境に合わせて自分を変えるべきだ'],a:0,e:'赤い朱の中にいると自分も赤く染まるように、人は付き合う相手や環境によって影響を受けるという意味です。'},
+  {id:540,cat:'ことわざ',q:'「馬の耳に念仏」の意味は？',cs:['いくら言っても全く効果がないこと','馬に話しかけても無駄なこと','理解できない人に教えても無駄なこと','耳を傾けない人には何も伝わらない'],a:0,e:'馬に念仏を聞かせても有難みがわからないように、いくら言い聞かせても効果がないことのたとえです。'},
+  {id:541,cat:'ことわざ',q:'「身から出た錆」の意味は？',cs:['自分のした悪い行いが原因で自分が苦しむ','体を鍛えれば錆びつかない','努力せずにいると力が衰える','他人の行動が自分に影響を与える'],a:0,e:'剣は手入れを怠ると自分の体から出た錆でダメになるように、自分のした行いが原因で苦しい結果を招くという意味です。'},
+  {id:542,cat:'ことわざ',q:'「のれんに腕押し」の意味は？',cs:['張り合いがなく効果がない','力強くても柔らかいものには勝てない','手応えがなくて面白くない','いくらやってもむだなこと'],a:0,e:'暖簾（のれん）を押しても抵抗がないように、張り合いがなく、やっても手ごたえがないことのたとえです。'},
+  {id:543,cat:'ことわざ',q:'「はじめの一歩が大切」と同じ意味のことわざは？',cs:['千里の道も一歩から','石の上にも三年','一石二鳥','急がば回れ'],a:0,e:'千里の道も一歩から（千里の道も一歩より始まる）は、どんな大きな目標も最初の一歩から始まるという意味です。'},
+  {id:544,cat:'ことわざ',q:'「善は急げ」の意味は？',cs:['よいと思ったことはすぐに実行せよ','急いで行動すれば良い結果が出る','善人は行動が早い','悪いことは先送りにすべきだ'],a:0,e:'よいことや正しいと思ったことは、ためらわず素早く実行せよという意味です。'},
+  {id:545,cat:'ことわざ',q:'「先んずれば人を制す」の意味は？',cs:['他より先に動けば有利な立場に立てる','まず先輩の意見を聞くことが大切だ','行動は慎重に順番を守るべきだ','年上の人を敬うことが成功の秘訣だ'],a:0,e:'他の人より先に行動することで、主導権を握って有利になれるという意味です。'},
+  {id:546,cat:'ことわざ',q:'「立つ鳥跡を濁さず」の意味は？',cs:['立ち去る時は後始末をきちんとすべきだ','鳥は空を飛ぶから水を濁さない','急いで立ち去る時は荷物を残さない','勝者は去り際が美しい'],a:0,e:'水鳥が飛び立った後に水が濁らないように、物事を離れるときは後始末をきちんとしなさいという意味です。'},
+  {id:547,cat:'ことわざ',q:'「情けは人のためならず」の正しい意味は？',cs:['人に情けをかけることは自分のためになる','人に情けをかけると相手のためにならない','人に優しくするのは自分のためだけではない','情けをかけると自分も助けてもらえる'],a:0,e:'人に情けをかけておくことは相手のためになるだけでなく、巡り巡って自分に戻ってくるという意味です。「相手のためにならない」と誤解されることが多いことわざです。'},
+  {id:548,cat:'ことわざ',q:'「三人寄れば文殊の知恵」の意味は？',cs:['凡人でも三人集まれば名案が出る','三人で考えれば知恵者に勝てる','人は集まることで力を発揮する','みんなで話し合えば必ず答えが出る'],a:0,e:'知恵の仏様である文殊菩薩でも三人が集まれば、優れた知恵が生まれるという意味です。'},
+  {id:549,cat:'ことわざ',q:'「木を見て森を見ず」の意味は？',cs:['細かいことに気をとられ全体が見えなくなる','一つのことに集中しすぎると全体を見失う','詳しく見すぎると本質を見逃す','部分を見ることで全体を誤解する'],a:0,e:'目の前の木一本に注目するあまり、森全体の様子が見えなくなるように、細部に気をとられて全体を把握できないことのたとえです。'},
+  {id:550,cat:'ことわざ',q:'「弘法にも筆の誤り」の意味は？',cs:['名人でも時に失敗することがある','どんな達人も練習が必要である','書道の名人弘法大師も間違える','道具が悪ければ名人でも失敗する'],a:0,e:'書道の達人である弘法大師でも筆を誤ることがあるように、どんな名人でも失敗することがあるという意味です。「猿も木から落ちる」と同じ意味です。'},
+  {id:551,cat:'ことわざ',q:'「塵も積もれば山となる」の意味は？',cs:['小さなことでも積み重ねれば大きくなる','少しずつ努力することが大切だ','些細なことも無視できない','小さな節約も続ければ大きな財産になる'],a:0,e:'ちりのように小さなものでも積み重なれば山のように大きくなることから、小さなことの積み重ねが大きな結果を生むという意味です。'},
+  {id:552,cat:'ことわざ',q:'「類は友を呼ぶ」の意味は？',cs:['似た者同士が自然に集まる','同じような人同士はすぐに仲良くなる','共通点がある人は引き合う','同じ趣味を持つ人は仲間になる'],a:0,e:'同じ種類のものは自然に集まるように、似た性質や考えの人は自然と仲間になるという意味です。'},
+  {id:553,cat:'ことわざ',q:'「朱に交われば赤くなる」の意味は？',cs:['人は周りの環境や人間関係に影響される','悪い仲間と付き合うと自分も悪くなる','環境は人を変える力がある','良い友人を持つことが大切だ'],a:0,e:'朱（赤い塗料）に交わると自然と赤くなるように、人は付き合う人や環境によって良くも悪くも影響されるという意味です。'},
+  {id:554,cat:'ことわざ',q:'「七つの海」「七不思議」のように「七」が使われることわざ「七転八倒」の意味は？',cs:['ひどく苦しんで転げ回ること','何度も転んでも立ち上がること','七回転び八回起きること','非常に激しく戦うこと'],a:0,e:'七転八倒（しちてんばっとう）は苦しくて転げ回ること。「七転び八起き」とは別の意味なので注意しましょう。'},
+  {id:555,cat:'ことわざ',q:'「井の中の蛙大海を知らず」の意味は？',cs:['狭い世界しか知らず広い世界を知らないこと','自分の世界が全てだと思い込むこと','経験が少ないと物事の本質がわからない','知識が少ないと自分の無知に気づかない'],a:0,e:'井戸の中の蛙は大きな海があることを知らないように、見聞が狭く世界の広さを知らないことのたとえです。'},
+  {id:556,cat:'ことわざ',q:'「蛇の道は蛇」の意味は？',cs:['同じ仲間のことは仲間が一番よくわかる','同じ失敗を何度も繰り返す','悪いことをすれば悪い仲間が集まる','専門家のことは専門家が知っている'],a:0,e:'蛇が通る道は蛇が一番よく知っているように、同類のすることは同類が一番よくわかるという意味です。'},
+  {id:557,cat:'ことわざ',q:'「口は禍の門」の意味は？',cs:['不用意な発言が災いのもとになる','言葉は人を傷つける武器になる','言葉は使い方によって人を幸せにも不幸にもする','余計なことを言うと損をする'],a:0,e:'口から出る言葉が災いのもとになることから、不用意な発言は慎むべきという意味です。'},
+  {id:558,cat:'ことわざ',q:'「沈黙は金、雄弁は銀」の意味は？',cs:['時に沈黙することは雄弁に語るより価値がある','黙っていることの方が話すより難しい','必要な時以外は話さない方がよい','上手な話より黙ることの方が賢い'],a:0,e:'上手に話すことも大切だが、それ以上に適切な場面で黙っていることの方が価値があるという意味です。'},
+  {id:559,cat:'ことわざ',q:'「弱り目に祟り目」の意味は？',cs:['困っているときに更に悪いことが重なる','弱い時こそ神様が助けてくれる','苦労の後には必ず幸せが来る','体が弱い人は神様に祟られる'],a:0,e:'目が弱っているところに更に目の病気が重なるように、困難なときに更に別の困難が重なることのたとえです。'},
+  {id:560,cat:'ことわざ',q:'「月とすっぽん」の意味は？',cs:['比べものにならないほど違いが大きい','見た目は似ていても中身が全く違う','同じように見えても実力が全く違う','月は美しいが実際は近づけない'],a:0,e:'月とすっぽんはどちらも丸いが比べものにならないことから、二つのものの差がとても大きいことのたとえです。'},
+  {id:561,cat:'ことわざ',q:'「雀百まで踊り忘れず」の意味は？',cs:['幼い頃の習慣は一生抜けない','若い頃に身につけたことは生涯忘れない','子どもの頃の経験は一生影響する','習慣は長い時間をかけて変わるもの'],a:0,e:'雀は死ぬまでその動きの習性を変えないことから、子どもの頃の習慣は年をとっても変わらないという意味です。'},
+  {id:562,cat:'ことわざ',q:'「仏の顔も三度」の意味は？',cs:['どんな温厚な人でも何度も無礼をされると怒る','我慢にも限界がある','三回失礼なことをすると許してもらえなくなる','温かい人でも限度がある'],a:0,e:'温厚な仏様でも三度顔をなでられれば腹を立てるように、どんなに温かい人でも度重なる無礼には怒るという意味です。'},
+  {id:563,cat:'ことわざ',q:'「転ばぬ先の杖」の意味は？',cs:['失敗しないように前もって準備をする','用心することが大切だ','危険を予測して備えておく','後悔しないように準備をしておく'],a:0,e:'転ぶ前に杖を用意しておくように、失敗や危険に備えてあらかじめ準備することが大切という意味です。'},
+  {id:564,cat:'ことわざ',q:'「焼け石に水」の意味は？',cs:['わずかな力では全く効果がない','焦っても状況は変わらない','少しの助けでは問題の解決にならない','緊急の対処では根本的な解決にならない'],a:0,e:'熱く焼けた石に少しの水をかけても冷やせないように、わずかな努力や助けでは全く役に立たないことのたとえです。'},
+  {id:565,cat:'ことわざ',q:'「泣き面に蜂」の意味は？',cs:['不運が重なること','悲しいことの上にさらに悪いことが起こる','弱い立場の人がさらに困難を受ける','悪いことは重なるものだ'],a:0,e:'泣いている顔をさらに蜂に刺されるように、不幸や災難の上にさらに不幸が重なることのたとえです。「踏んだり蹴ったり」と似た意味です。'},
+  {id:566,cat:'ことわざ',q:'「案ずるより産むが易し」の意味は？',cs:['実際にやってみると思ったより簡単なことが多い','物事は計画を立ててから行動すべきだ','心配しすぎると良い結果が出ない','準備が大切で行動は後回しにすべきだ'],a:0,e:'出産は心配するほど大変ではないことから、あれこれ心配するより実際にやってみると意外と簡単だということのたとえです。'},
+  {id:567,cat:'ことわざ',q:'「紺屋の白袴」の意味は？',cs:['他人のことはするが自分のことは後回し','専門家が自分の分野でいちばん手を抜く','仕事が忙しくて自分のことができない','職人は仕事中は自分を犠牲にする'],a:0,e:'染物屋（紺屋）が白い袴をはいているように、他人のことはするが自分のことは後回しになることのたとえです。'},
+  {id:568,cat:'ことわざ',q:'「棒ほど願って針ほど叶う」の意味は？',cs:['望み通りにはなかなかいかない','大きな願いは叶いにくい','期待が大きいほど失望も大きい','欲張ると結局少ししか得られない'],a:0,e:'棒のように大きく願っても実際には針ほどしか叶わないように、望み通りにはなかなかいかないことのたとえです。'},
+  {id:569,cat:'ことわざ',q:'「腹八分に医者いらず」の意味は？',cs:['食事は腹八分目にしておけば健康でいられる','食べすぎないことが健康の基本','適度な食事が最良の健康法','満腹まで食べると病気になる'],a:0,e:'腹の八分目くらいの食事を心がけていれば病気にならず医者にかからなくてすむという意味の養生訓です。'},
+  {id:570,cat:'ことわざ',q:'「早起きは三文の徳」の意味は？',cs:['朝早く起きると何らかの得がある','規則正しい生活は健康によい','朝の時間を大切にすると成功する','朝型の生活が一日を充実させる'],a:0,e:'早起きをするといろいろ得をすることがあるという意味のことわざです。三文は少額の金銭。'},
+  {id:571,cat:'ことわざ',q:'「旅は道連れ世は情け」の意味は？',cs:['何事も助け合いが大切だ','旅行は仲間がいると楽しい','人は助け合って生きるものだ','世の中は互いの思いやりで成り立っている'],a:0,e:'旅に仲間がいると心強いように、世の中は人々の情けで成り立っているという意味で、互いに助け合うことの大切さを説いています。'},
+  {id:572,cat:'ことわざ',q:'「隣の芝生は青く見える」の意味は？',cs:['他人のものはよく見えるものだ','自分のものより他人のものが羨ましく見える','他人の生活はいつも輝いて見える','実際は同じでも他人のものがよく見える'],a:0,e:'隣の家の芝生は自分の家のものよりも青々と美しく見えるように、他人のものはよく見えてしまうものだという意味です。'},
+  {id:573,cat:'ことわざ',q:'「触らぬ神に祟りなし」の意味は？',cs:['余計な関わりを持たなければ災いはない','危険なものには近づかない方がよい','問題のあることには関わらない方が安全','見て見ぬふりをするのが賢明なこともある'],a:0,e:'神様に触れなければ祟られることもないように、余計な関わりを持たなければ面倒なことに巻き込まれないという意味です。'},
+  {id:574,cat:'ことわざ',q:'「背に腹は代えられぬ」の意味は？',cs:['大切なことのためには他のことを犠牲にする','最も重要なことを最優先にする','命がかかれば何でも犠牲にできる','重大な局面では本質的なことを選ぶ'],a:0,e:'背中のかゆさよりお腹の空腹の方が切実なように、大切なことのためには他のことを犠牲にせざるを得ないという意味です。'},
+  {id:575,cat:'ことわざ',q:'「付和雷同」の意味は？',cs:['自分の意見を持たず他人に同調する','周りの意見に流されること','自分の考えを主張できないこと','みんなと同じ意見を持つこと'],a:0,e:'雷が鳴るとすぐ同調するように、自分の考えを持たずにすぐ他人の言動に同調することです。'},
+  {id:576,cat:'ことわざ',q:'「同舟相救う」に近い意味は？',cs:['同じ立場の人は助け合うものだ','仲間と力を合わせれば困難を乗り越えられる','同じ苦しみを持つ者は共感できる','ピンチの時こそ協力が大切'],a:0,e:'同じ舟に乗っていれば嵐の時に助け合うように、同じ境遇の人は力を合わせるものだという意味です。'},
+  {id:577,cat:'ことわざ',q:'「過ぎたるは及ばざるが如し」の意味は？',cs:['やりすぎることは不足することと同じくらいよくない','何事もほどほどが大切','行き過ぎた努力は逆効果になる','完璧を求めすぎると失敗する'],a:0,e:'論語の言葉で、何事もやりすぎは不足と同様によくなく、中庸が大切だという意味です。'},
+  {id:578,cat:'ことわざ',q:'「木に竹を接ぐ」の意味は？',cs:['不釣り合いなものを無理に組み合わせる','性質の違うものをくっつけること','無理なことをしようとすること','異質なものが一緒になってうまくいかない'],a:0,e:'木に竹をつぎ木しても性質が違いうまくいかないように、性質や調子が合わないものを無理に結びつけることのたとえです。'},
+  {id:579,cat:'ことわざ',q:'「人の振り見て我が振り直せ」の意味は？',cs:['他人の行動を見て自分の行動を反省する','他人の失敗から自分の教訓を得る','人のことを見ると自分のことがよくわかる','他人の行いを観察して自分を磨く'],a:0,e:'他人の行動を見て、自分の行動の良し悪しを反省し直すようにしなさいという教えです。'},
+  {id:580,cat:'ことわざ',q:'「若い時の苦労は買ってでもせよ」の意味は？',cs:['若いうちの苦労は後の成長につながる','苦労は若いうちにするほど将来の力になる','若い時の苦労を恐れるな','辛い経験が人を強くする'],a:0,e:'若い時の苦労は人を大きく成長させるので、積極的に経験すべきだという意味です。'},
+  {id:581,cat:'ことわざ',q:'「柔よく剛を制す」の意味は？',cs:['しなやかで柔らかいものが強いものに勝つことがある','強い者が弱い者を支配するのは自然なことだ','剣道では柔道より強い','心が柔らかい人は必ず成功する'],a:0,e:'柔道の技のように、力でなくしなやかさや巧みさで強い相手に勝つことができるという意味です。'},
+  {id:582,cat:'ことわざ',q:'「隠れた才能」を表すことわざは？',cs:['能ある鷹は爪を隠す','鷹は飢えても穂を摘まず','虎は死して皮を留める','秋の鹿は笛に寄る'],a:0,e:'能ある鷹は爪を隠す。本当の実力者は実力を見せびらかさないという意味のことわざです。'},
+  {id:583,cat:'ことわざ',q:'「以心伝心」の意味は？',cs:['言葉を使わなくても気持ちが通じ合う','言葉をかわせば必ず相手に伝わる','一生懸命伝えれば気持ちは届く','話し合うことで心が通じ合う'],a:0,e:'言葉を使わなくても、互いの心と心が通じ合うことのたとえです。もとは禅の言葉です。'},
+  {id:584,cat:'ことわざ',q:'「一期一会」の意味は？',cs:['一生に一度の出会いを大切にする','今この出会いを大切にする','人との出会いは一度きりと思って大切にする','縁を大切にすること'],a:0,e:'茶道から生まれた言葉で、一生に一度きりの出会いと思って誠意を持って人に接するという意味です。'},
+  {id:585,cat:'ことわざ',q:'「切磋琢磨」の意味は？',cs:['互いに励まし合い競い合って向上する','仲間と協力して目標を達成する','競争することで成長する','友人と切磋して技を磨く'],a:0,e:'石や骨を切り磨くように、学問や人格を磨くこと。また、仲間同士が互いに刺激し合って共に向上することです。'},
+  {id:586,cat:'ことわざ',q:'「臥薪嘗胆」の意味は？',cs:['目的を達成するため苦労や苦難に耐える','悔しさをバネに努力する','失敗を乗り越えて成功する','復讐のため苦労を厭わない'],a:0,e:'薪の上に臥し胆を嘗める苦労をして復讐を果たした故事から、目的のためにつらい苦労に耐えることのたとえです。'},
+  {id:587,cat:'ことわざ',q:'「温故知新」の意味は？',cs:['昔のことを学び新しい知識を得る','古いことを大切にしながら新しいことも学ぶ','歴史から現在への教訓を学ぶ','過去を知ることで未来が開ける'],a:0,e:'論語の言葉で、昔のことを研究し新しい知識・見解を得ることで、師たる資格があるという意味です。'},
+  {id:588,cat:'ことわざ',q:'「自業自得」の意味は？',cs:['自分のした行いの結果は自分に返ってくる','他人のせいで悪いことが起きる','良い行いは必ず報われる','つらいことは運命だから仕方ない'],a:0,e:'自分が行ったことの結果は自分が受けるということで、主に悪いことをした場合の報いを指す場合に使います。'},
+  {id:589,cat:'ことわざ',q:'「因果応報」の意味は？',cs:['よいことをすればよい結果、悪いことをすれば悪い結果が来る','どんな悪いことも時間がたてば許される','運命は最初から決まっている','神様が善悪を決める'],a:0,e:'仏教語で、良い行いにはよい報い、悪い行いには悪い報いが必ず来るという意味です。'},
+  {id:590,cat:'ことわざ',q:'「五十歩百歩」の意味は？',cs:['程度の差はあれ本質的には同じこと','どちらも大差ない','少しの差はあっても同類','大きな違いはなく似たようなもの'],a:0,e:'五十歩逃げた兵が百歩逃げた兵を笑っても同じ逃げたこと。程度の差はあれ本質的に同じという意味の故事成語です。'},
+  {id:591,cat:'ことわざ',q:'「大器晩成」の意味は？',cs:['大人物は遅く成長するが最終的には大成する','才能は若いころには現れないことがある','じっくり時間をかけた方が大きく成長する','本当の実力者は若いころは目立たない'],a:0,e:'大きな器はゆっくり出来上がるように、偉大な人物は若い頃は目立たないが、後に大成するという意味です。'},
+  {id:592,cat:'ことわざ',q:'「孟母三遷」の意味は？',cs:['子どもの教育には環境が大切だ','母親の愛情が子どもの才能を伸ばす','引っ越しは子どもの成長を妨げる','学校選びより家庭教育が大切だ'],a:0,e:'孟子の母親が子どもの教育のために三度引っ越したという故事から、子どもの教育環境が大切という意味です。'},
+  {id:593,cat:'ことわざ',q:'「蛍の光窓の雪」が示すことわざの教えは？',cs:['苦しい環境でも懸命に学ぶことが大切','苦労して学問をすると成功する','貧しくても努力すれば成功できる','逆境の中にも学ぶ機会はある'],a:0,e:'ホタルの光や窓の雪あかりで勉強した故事から、苦しい環境でも努力して学ぶことが大切という意味です。'},
+  {id:594,cat:'ことわざ',q:'「他山の石」の意味は？',cs:['他人の失敗や欠点を自分の戒めにする','他人の行いから教訓を得る','外部からの批判も参考にする','よその例を見て自分を磨く'],a:0,e:'他の山の粗末な石でも、玉を磨くのに役立つことから、他人の失敗や欠点を自分の成長に役立てるという意味です。'},
+  {id:595,cat:'ことわざ',q:'「石橋を叩いて渡る」の意味は？',cs:['十分に確かめてから行動する','やってみてから考えるのが大切だ','一度決めたら迷わず進むべきだ','失敗しても諦めずに挑戦する'],a:0,e:'丈夫な石橋でも叩いて安全を確かめてから渡るように、十分に注意して慎重に物事を進めるという意味です。'},
+  {id:596,cat:'ことわざ',q:'「骨折り損のくたびれもうけ」の意味は？',cs:['苦労だけして何も得られない','努力が全て無駄になること','頑張っても報われないこと','疲れるだけで成果がない'],a:0,e:'骨を折って努力しても疲労だけが残って何の得もなかった、苦労した割に結果が出なかったことのたとえです。'},
+  {id:597,cat:'ことわざ',q:'「果報は寝て待て」の意味は？',cs:['よい結果は焦らず待つのがよい','運がよければ何もしなくても結果が来る','焦らずに時を待つことが大切','時が来れば自然と幸せが訪れる'],a:0,e:'幸運は自分の力ではどうにもならないから、焦らずに待っていればよいという意味です。'},
+  {id:598,cat:'ことわざ',q:'「水と油」の意味は？',cs:['性質が全く違って合わない','仲が悪くて協力できない','どうしても混ざり合わない関係','相性が悪くて共存できない'],a:0,e:'水と油が混ざり合わないように、性質や考え方が全く違って調和しないことのたとえです。'},
+  {id:599,cat:'ことわざ',q:'「一寸の虫にも五分の魂」の意味は？',cs:['どんな小さな者にも意地やプライドがある','弱い者でも侮ってはいけない','小さな存在にも大切な命がある','地位が低い人にも感情がある'],a:0,e:'小さな虫でも半分の魂がある（意地がある）ということから、どんな小さな者でも侮ってはならないという意味です。'},
+  {id:600,cat:'ことわざ',q:'「後悔先に立たず」の意味は？',cs:['失敗してから後悔しても取り返しがつかない','後悔してもすでに遅い','過ぎたことを悔やんでも仕方がない','行動する前に慎重に考えるべきだ'],a:0,e:'失敗した後で後悔しても、もう手遅れで取り返しがつかないという意味。だから事前に慎重に考えるべきという教えです。'},
+  {id:601,cat:'ことわざ',q:'「敵に塩を送る」の意味は？',cs:['苦境に立つ敵に手を差し伸べる','競争相手に必要なものを与える','戦いながらも礼儀を守る','敵にも親切にする'],a:0,e:'戦国時代、上杉謙信が敵・武田信玄に塩を送った故事から、困っている敵に援助の手を差し伸べることのたとえです。'},
+  {id:602,cat:'ことわざ',q:'「急いでも仕方がない」という意味のことわざは？',cs:['果報は寝て待て','善は急げ','急いては事を仕損じる','急がば回れ'],a:0,e:'果報は寝て待てが「焦らず待つのがよい」という意味のことわざです。善は急げは逆の意味です。'},
+  {id:603,cat:'ことわざ',q:'「苦は楽の種」の意味は？',cs:['苦しいことに耐えれば後に楽になる','今の苦労が将来の喜びになる','苦しみの後には必ず喜びが来る','苦労した分だけ楽しみも大きい'],a:0,e:'苦しいことも後の楽しみの種になるから、苦労に耐えることが大切という意味です。「楽あれば苦あり」の反対の考え方です。'},
+  {id:604,cat:'ことわざ',q:'「楽あれば苦あり」の意味は？',cs:['楽しいことの後には苦しいこともある','よいことばかりは続かない','喜びと苦しみは交互にやってくる','人生には楽しいこともつらいこともある'],a:0,e:'楽しいことの後には苦しいこともやってくるものだという意味で、世の中はよいことばかりは続かないという教えです。'},
+  {id:605,cat:'ことわざ',q:'「転んでも只では起きない」の意味は？',cs:['失敗しても何か利益を得ようとする','どんな状況でも諦めない','失敗を次の成功に活かす','損をしても何かを得ようとする'],a:0,e:'転んでもただでは起きず何かをつかもうとするように、どんな状況でも何らかの利益を得ようとする抜け目なさのたとえです。'},
+  {id:606,cat:'ことわざ',q:'「豆腐にかすがい」の意味は？',cs:['効き目が全くないこと','柔らかいものには力が通じない','頑固な人には何を言っても無駄','やっても手ごたえがないこと'],a:0,e:'豆腐にかすがい（木材をつなぐ金具）を打っても効かないように、全く効き目がないことのたとえです。'},
+  {id:607,cat:'ことわざ',q:'「蓼食う虫も好き好き」の意味は？',cs:['人の好みはそれぞれ違う','何が好きかは人によって様々','どんなものでも好きな人がいる','好みに良し悪しはない'],a:0,e:'苦い蓼を好んで食べる虫がいるように、人の好みはそれぞれ違うものだという意味です。'},
+  {id:608,cat:'ことわざ',q:'「鬼の目にも涙」の意味は？',cs:['冷酷な人でも時には涙を流すことがある','無情に見える人にも感情がある','強い人でも弱い面がある','誰でも感動する心がある'],a:0,e:'冷酷に見える鬼でも時には泣くことがあるように、厳しく非情に見える人でも感情があるという意味です。'},
+  {id:609,cat:'ことわざ',q:'「魚心あれば水心」の意味は？',cs:['相手が好意を持てば自分も好意を持つ','相手の気持ち次第で自分も変わる','相手に合わせて自分の態度を決める','思いやりは思いやりで返ってくる'],a:0,e:'魚が水に親しもうとすれば水も魚を受け入れるように、相手が好意を持てばこちらも相手に好意を持つという意味です。'},
+  {id:610,cat:'ことわざ',q:'「取らぬ狸の皮算用」の意味は？',cs:['手に入れていないものを当てにして計算する','まだ得ていないものを得たとして考える','根拠のない期待をすること','先走って喜ぶこと'],a:0,e:'まだ捕まえていない狸の皮をいくらで売れるか計算するように、まだ確定していないことを当てにして計画を立てることのたとえです。'},
+  {id:611,cat:'ことわざ',q:'「案ずるより産むが易し」の意味は？',cs:['やる前に心配するより実際やってみると案外簡単','考えすぎずに行動することが大切','恐れていることは実際には大したことがない','心配は取り越し苦労のことが多い'],a:0,e:'出産（産む）前は心配でも実際は案外楽にできるように、やる前にあれこれ心配するより実際やってみると案外簡単なことが多いという意味です。'},
+  {id:612,cat:'ことわざ',q:'「餅は餅屋」の意味は？',cs:['専門のことは専門家に任せるのが一番','それぞれの仕事は専門家が一番上手','素人が背伸びしても敵わない','物事には専門家がいる'],a:0,e:'餅は餅屋が作るのが一番うまいように、専門のことは専門家に任せるのが最善という意味です。'},
+  {id:613,cat:'ことわざ',q:'「捕らぬ狸」の話からわかることわざの教えは？',cs:['確実でないことを前提に計画してはいけない','現実を見据えた計画が大切','欲張りは失敗の元','実績のないことを当てにしない'],a:0,e:'取らぬ狸の皮算用。まだ確定していないことを当てにして計画を立てることへの警告です。'},
+  {id:614,cat:'ことわざ',q:'「百害あって一利なし」の意味は？',cs:['害ばかりで少しもよいことがない','デメリットがメリットをはるかに上回る','百の害があって一つの利もない','全くよいところがない'],a:0,e:'百の害があって一つの利もないという意味で、デメリットだらけで全くよいことがないことのたとえです。'},
+  {id:615,cat:'ことわざ',q:'「二度あることは三度ある」の意味は？',cs:['同じことが何度でも繰り返される','二度起きたことはまた起きる','悪いことは続いて起きる','同じ過ちは何度でも繰り返す'],a:0,e:'二度起きたことは三度目もあるように、同じことが繰り返して起こりやすいという意味です。'},
+  {id:616,cat:'ことわざ',q:'「三度目の正直」の意味は？',cs:['三度目には必ず本当のことが決まる','二回失敗しても三回目は成功する','三回目は本物だということ','三回繰り返せば本当のことがわかる'],a:0,e:'一度目二度目は当てにならないが、三度目は確実に正しいことが決まるという意味です。「二度あることは三度ある」と対になることわざです。'},
+  {id:617,cat:'ことわざ',q:'「借りた金は忘れてもかした金は忘れない」に近い意味は？',cs:['自分に都合のいいことだけ覚えている','人は自分に利益のあることを忘れない','恩を受けることより施すことの方が記憶に残る','都合の悪いことは忘れやすい'],a:0,e:'人は自分に不利なことは忘れ、有利なことは覚えているという人間の身勝手さを皮肉った表現です。'},
+  {id:618,cat:'ことわざ',q:'「泥棒を捕らえて縄をなう」と同じ意味のことわざは？',cs:['臨時逃れに縄をなう','転ばぬ先の杖','後の祭り','備えあれば憂いなし'],a:0,e:'泥棒が入ってから縄をなって縛ろうとするのは遅すぎるように、物事が起きてから準備するのでは遅い（後の祭り）という意味です。'},
+  {id:619,cat:'ことわざ',q:'「豚に真珠」と同じ意味のことわざは？',cs:['猫に小判','馬の耳に念仏','犬に論語','鴨に葱'],a:0,e:'豚に真珠も、猫に小判も、価値のわからない者にとっては貴重なものも何の役にも立たないという意味です。'},
+  {id:620,cat:'ことわざ',q:'「一将功成りて万骨枯る」の意味は？',cs:['一人の成功の陰に多くの人の犠牲がある','リーダーの成功は多くの人の支えがあってこそ','輝く成果の裏には苦労がある','一人が栄えるために多くが犠牲になる'],a:0,e:'一人の将軍が手柄を立てる陰で、無数の兵士が死んでいるということから、一人の成功の裏に多くの犠牲があるという意味です。'},
+  {id:621,cat:'ことわざ',q:'「窮鼠猫を咬む」の意味は？',cs:['追い詰められた弱者が強者に反撃する','絶体絶命の時には必死になる','弱者でも追い詰められると思わぬ力を出す','逃げ場がなくなると思いがけない行動に出る'],a:0,e:'追い詰められたねずみも猫に噛みつくように、弱い者でも追い詰められると必死になって強い者に反撃することがあるという意味です。'},
+  {id:622,cat:'ことわざ',q:'「遠くの親戚より近くの他人」の意味は？',cs:['いざという時は近所の人の方が頼りになる','実際に助けてくれる人の方が大切','距離が遠い親戚より身近な人間関係が大切','実際に役に立つ関係を大切にすべきだ'],a:0,e:'困った時には遠く離れた親戚より、近所に住む赤の他人の方が頼りになるという意味です。'},
+  {id:623,cat:'ことわざ',q:'「渡る世間に鬼はない」の意味は？',cs:['世の中には親切な人が多い','冷たい人ばかりではなく思いやりのある人もいる','困った時には助けてくれる人がいる','世間は冷たくない'],a:0,e:'世の中には鬼のように冷たい人ばかりではなく、親切に助けてくれる人もいるという意味です。'},
+  {id:624,cat:'ことわざ',q:'「亀の甲より年の功」の意味は？',cs:['年長者の経験から来る知恵は大切だ','長く生きた人の知恵は尊い','経験の積み重ねが知恵になる','年齢を重ねると自然と知恵が身につく'],a:0,e:'亀の甲のように年をとった人の「年の功（功績・経験）」は大切で、若者にはまねできない知恵があるという意味です。'},
+  {id:625,cat:'ことわざ',q:'「盗人にも三分の理」の意味は？',cs:['どんな行為にも一応の言い訳がある','悪人にも言い分はある','悪いことにも正当化できる理由がある','三割は正しいことがある'],a:0,e:'泥棒でも「生活のためだ」などと言い訳ができるように、どんな悪いことにも一応もっともらしい理由があるという意味です。'},
+  {id:626,cat:'ことわざ',q:'「のどもと過ぎれば熱さを忘れる」の意味は？',cs:['苦しいことも過ぎてしまえばすぐに忘れる','つらい経験も時間が経てば薄れる','危険が去ると警戒心がなくなる','人は苦しみをすぐに忘れる'],a:0,e:'熱いものものどを通り過ぎれば熱さを感じなくなるように、苦しいことも過ぎてしまうとすぐ忘れてしまうという意味です。'},
+  {id:627,cat:'ことわざ',q:'「良薬は口に苦し」の意味は？',cs:['ためになる忠告は聞きにくいことが多い','本当によいものは苦くても価値がある','正直な意見は耳が痛いことが多い','よい薬は苦くても飲まなければならない'],a:0,e:'よく効く薬ほど苦いように、ためになる忠告は聞きにくいことが多いという意味です。'},
+  {id:628,cat:'ことわざ',q:'「飼い犬に手を咬まれる」の意味は？',cs:['世話をした相手に裏切られる','信頼していた人に傷つけられる','恩を与えた人に恩を仇で返される','親切にした人に害を受ける'],a:0,e:'かわいがって飼っていた犬に手を咬まれるように、世話をしたり恩を与えた人物に裏切られることのたとえです。'},
+  {id:629,cat:'ことわざ',q:'「人のうわさも七十五日」の意味は？',cs:['うわさはいつかは忘れられる','うわさは七十五日で消える','噂は長くは続かない','時間が経てばうわさは自然に消える'],a:0,e:'世間のうわさも七十五日もすれば自然に消えてしまうことから、どんなうわさも時が経てばやがて忘れられるという意味です。'},
+  {id:630,cat:'ことわざ',q:'「七転び八起き」の「七・八」の意味は？',cs:['何度でもという意味で実際の回数ではない','七回転んで八回起きることを指す','失敗より成功の数が多ければよい','七は失敗、八は成功を表す'],a:0,e:'七と八は「何度でも」という意味で、実際の回数を示したものではありません。何度倒れても立ち上がるという意味です。'},
+  {id:631,cat:'ことわざ',q:'「知らぬ存ぜぬ」と関連する「三猿」が示す教えは？',cs:['見ざる・言わざる・聞かざる','悪いことに関わらない','見聞きしたことを言わない','三つのことを守る'],a:0,e:'三猿（さんえん）は見ざる・聞かざる・言わざる。悪いことは見ない・聞かない・言わないという教えを表したものです。'},
+  {id:632,cat:'ことわざ',q:'「酒は百薬の長」の意味は？',cs:['適量のお酒はどんな薬よりも効果がある','お酒は百種類の薬と同じ効果がある','少しのお酒は体によい','お酒は最高の薬だという考え方'],a:0,e:'適度に飲む酒は体によく、どんな薬よりもすぐれているという意味ですが、飲み過ぎはいけないという戒めも含んでいます。'},
+  {id:633,cat:'ことわざ',q:'「石に布団は着せられぬ」に近い意味は？',cs:['死んだ後では何もしてあげられない','大切なことは生きているうちにすべき','存在しないものには何もできない','死んだ後の後悔は意味がない'],a:0,e:'生きているうちに親孝行などをすべきで、死んでからでは何もできないという意味です。「親孝行したいときに親はなし」と似た意味です。'},
+  {id:634,cat:'ことわざ',q:'「人の噂も七十五日」の意味は？',cs:['噂は時間が経てば忘れられる','人の悪口を言うと七十五日間運が悪くなる','いつまでも噂話をしてはいけない','七十五日後に人の本性が現れる'],a:0,e:'どんな噂も七十五日たてば自然に忘れられるように、いつまでも話題にされ続けることはないという意味です。'},
+  {id:635,cat:'ことわざ',q:'「下手の横好き」の意味は？',cs:['下手なのに熱心に好んでやること','へたでも続ければ上手になる','好きなことは下手でも楽しい','才能がなくてもやる気は大切'],a:0,e:'下手なのに、その物事をとても好んでやることのたとえです。悪い意味を含んで使うことが多い表現です。'},
+  {id:636,cat:'ことわざ',q:'「凡人の芸は名手の妨げ」と同じ意味のことわざは？',cs:['下手の長談義','下手の横好き','下手の物好き','へたうち多くして終わらず'],a:0,e:'下手の長談義は下手な話し手ほど長々と話して人を退屈させるという意味で、技量のない人の行為が邪魔になることのたとえです。'},
+  {id:637,cat:'ことわざ',q:'「善は急げ」の反対の教えを持つことわざは？',cs:['急いては事を仕損じる','急がば回れ','先を急ぐな','焦らず待て'],a:0,e:'善は急げはすぐ行動せよという意味ですが、急いては事を仕損じるは焦ると失敗するという意味で、対になります。'},
+  {id:638,cat:'ことわざ',q:'「雨だれ石を穿つ」の意味は？',cs:['小さな力でも根気よく続ければ大きなことを成し遂げる','どんな困難も継続する努力で乗り越えられる','少しずつ続けることが大きな変化を生む','粘り強さが最大の力になる'],a:0,e:'軒から落ちる雨だれでも長い時間をかけると石に穴を開けるように、根気よく努力を続ければ必ず目標を達成できるという意味です。'},
+  {id:639,cat:'ことわざ',q:'「人事を尽くして天命を待つ」の意味は？',cs:['できる限り努力して後は結果を天に任せる','人間のできることをして後は神に委ねる','全力を尽くした後は運命に従う','やるべきことをした後は結果を受け入れる'],a:0,e:'自分にできることを全てやり尽くした上で、後の結果は天の意思に任せるという意味です。'},
+  {id:640,cat:'ことわざ',q:'「門前の小僧習わぬ経を読む」の意味は？',cs:['環境に影響されて自然に身につくことがある','近くにいるだけで自然と学べる','学ぼうとしなくても環境次第で身につく','よい環境にいると自然に成長する'],a:0,e:'お寺の門前にいる小僧は習ったわけでもないのに、お経を聞き覚えているように、環境が人の習慣や技能に影響することのたとえです。'},
+
+  // ── 慣用句 641-760 ──
+  {id:641,cat:'慣用句',q:'「一目置く」の意味は？',cs:['相手を自分より優れていると認めて敬意を払う','一度だけ見て評価する','少しだけ距離を置いて様子をうかがう','目立たないように控えめにする'],a:0,e:'囲碁で相手に一石置かせることから、相手を実力者と認めて敬意を払うことのたとえです。'},
+  {id:642,cat:'慣用句',q:'「足を洗う」の意味は？',cs:['悪い仕事や生活をやめて真っ当な生き方をする','旅から帰ってくる','汚れた過去を清算する','行くのをやめる'],a:0,e:'悪い世界や仕事から離れて、きちんとした生き方をするようになることのたとえです。'},
+  {id:643,cat:'慣用句',q:'「首が回らない」の意味は？',cs:['借金などで身動きが取れない','首が痛くて動かせない','忙しすぎて何も手がつけられない','周りを見る余裕がなくなる'],a:0,e:'借金などが重なって首が回せないほど追い詰められた状態のたとえです。'},
+  {id:644,cat:'慣用句',q:'「眼中にない」の意味は？',cs:['まったく相手にしない・眼中にない','目の前がよく見えない','目が疲れて何も見えない','注意が散漫で集中できない'],a:0,e:'目の中に存在していないことから、まったく眼中になく相手にもしていないことのたとえです。'},
+  {id:645,cat:'慣用句',q:'「目から鱗が落ちる」の意味は？',cs:['急に物事の真実がわかるようになる','目の前が明るくなる','急に視界が開ける','考えが一変する'],a:0,e:'聖書の表現から来た言葉で、何かのきっかけで急に物事の真実がはっきりわかるようになることのたとえです。'},
+  {id:646,cat:'慣用句',q:'「歯が立たない」の意味は？',cs:['とても強くて太刀打ちできない','硬くて噛めない','難しすぎて手がつけられない','相手にならない'],a:0,e:'固いものに歯が立たないように、強い相手や難しい問題にとても太刀打ちできないことのたとえです。'},
+  {id:647,cat:'慣用句',q:'「頭が固い」の意味は？',cs:['考え方が頑固で融通がきかない','頭の回転が速い','気難しくて取っ付きにくい','物事の理解が遅い'],a:0,e:'頭が硬くて曲がらないことから、考え方が頑固で柔軟性がなく融通がきかないことのたとえです。'},
+  {id:648,cat:'慣用句',q:'「首を長くして待つ」の意味は？',cs:['とても楽しみにして待ち望む','辛抱強く待つ','待ちくたびれる','期待しながら待つ'],a:0,e:'首を伸ばして遠くを見るように、心待ちにして今か今かと待つことのたとえです。'},
+  {id:649,cat:'慣用句',q:'「尾を引く」の意味は？',cs:['物事の影響や余韻が長く続く','追いかけてついて来る','ゆっくりと時間をかけて進む','長い話がいつまでも終わらない'],a:0,e:'動物の尾が引きずられるように、ある出来事の影響がいつまでも続くことのたとえです。'},
+  {id:650,cat:'慣用句',q:'「取り付く島もない」の意味は？',cs:['冷たく拒絶されて話しかける余地もない','遠い離れ島に取り残される','手がかりがまったく見つからない','相手が忙しすぎて近づけない'],a:0,e:'嵐の海で取り付く島もない状態から、相手が冷たく拒絶して話しかける余地が全くないことのたとえです。'},
+  {id:651,cat:'慣用句',q:'「猫をかぶる」の意味は？',cs:['本来の性格を隠しておとなしそうに見せる','本心を隠す','外見をよく見せようとする','おとなしいふりをする'],a:0,e:'猫のようにおとなしい振りをすることから、本当の性格を隠しておとなしそうに見せることのたとえです。'},
+  {id:652,cat:'慣用句',q:'「明るみに出る」の意味は？',cs:['隠れていたことが世間に知られる','明るい場所に出て行く','物事がうまく解決する','暗い気持ちが晴れる'],a:0,e:'暗い場所から明るい場所に出ることから、秘密にされていたことが世間に知られることのたとえです。'},
+  {id:653,cat:'慣用句',q:'「足が棒になる」の意味は？',cs:['長く歩いて足がひどく疲れて痛くなる','足の骨を折ってしまう','走るのが非常に速い','足が長くスタイルが良い'],a:0,e:'足が棒のように硬くなることから、長く歩いて足がとても疲れて痛くなることのたとえです。'},
+  {id:654,cat:'慣用句',q:'「目を細める」の意味は？',cs:['うれしそうに、または愛情深く見る','細かいものを見ようとする','眩しくて目を細める','喜びで顔をほころばせる'],a:0,e:'うれしさや愛情で目を細めるように、目を細くして見ることから、うれしそうに、または目に入れても痛くないほどかわいがるという意味です。'},
+  {id:655,cat:'慣用句',q:'「手が届く」の意味は？',cs:['達成できる範囲にある','手が伸ばせば届く距離にある','目標が近づいた','実力が十分ある'],a:0,e:'手が届くように、目標などが達成できる範囲にある、または十分に行き届いているという意味です。'},
+  {id:656,cat:'慣用句',q:'「鼻であしらう」の意味は？',cs:['相手をばかにして冷たく対応する','相手を無視する','見下した態度をとる','鼻で笑いながら対応する'],a:0,e:'鼻先で払いのけるように、相手をばかにして冷たく対応することのたとえです。'},
+  {id:657,cat:'慣用句',q:'「口が重い」の意味は？',cs:['なかなか口を開こうとしない','不機嫌そうな顔をしている','言いたいことが言えずに我慢する','言葉遣いが非常に丁寧すぎる'],a:0,e:'口が重くて開きにくいことから、あまり話したがらないで口数が少ないことのたとえです。'},
+  {id:658,cat:'慣用句',q:'「腰を抜かす」の意味は？',cs:['驚きや恐ろしさで立てなくなる','腰が痛くて動けない','あまり笑って転んでしまう','疲れ果てて歩けなくなる'],a:0,e:'驚いて腰が抜けてしまうことから、非常に驚いたり恐ろしくて動けなくなることのたとえです。'},
+  {id:659,cat:'慣用句',q:'「顔から火が出る」の意味は？',cs:['とても恥ずかしい思いをする','怒りで顔が真っ赤になる','緊張して汗をかく','興奮して気分が高まる'],a:0,e:'恥ずかしさで顔が燃えるように熱くなることから、とても恥ずかしくてたまらないことのたとえです。'},
+  {id:660,cat:'慣用句',q:'「手が後ろに回る」の意味は？',cs:['犯罪などで逮捕される','後ろから助けてもらう','遠回りして行動する','困って誰かに頼む'],a:0,e:'手錠をかけられて手が後ろに回るように、犯罪を犯して警察に逮捕されることのたとえです。'},
+  {id:661,cat:'慣用句',q:'「水泡に帰す」の意味は？',cs:['努力や計画がすべて無駄になる','水の中に沈んでしまう','うまく流れていく','たくさんの成果を出す'],a:0,e:'水の泡が消えるように、これまでの努力や積み重ねがすべて無駄になってしまうことのたとえです。'},
+  {id:662,cat:'慣用句',q:'「念を押す」の意味は？',cs:['間違いのないよう念のために確認する','強く主張して相手を説得する','相手に強い圧力をかける','丁寧にお願いする'],a:0,e:'念（注意）を押し付けるように、大事なことが正しく伝わっているか改めて確認することのたとえです。'},
+  {id:663,cat:'慣用句',q:'「肩の荷が下りる」の意味は？',cs:['責任や心配事がなくなって気が楽になる','重荷がなくなって楽になる','プレッシャーから解放される','義務を果たして安心する'],a:0,e:'重い荷物を肩から下ろすように、責任や心配事がなくなって気が楽になることのたとえです。'},
+  {id:664,cat:'慣用句',q:'「眉をひそめる」の意味は？',cs:['不快に思って顔をしかめる','心配して表情が暗くなる','不満や不快感を顔に表す','嫌だという気持ちを表す'],a:0,e:'不快や心配のあまり眉をよせることから、不快や不満の気持ちを顔に表すことのたとえです。'},
+  {id:665,cat:'慣用句',q:'「暖簾に腕押し」の意味は？',cs:['手応えがなく張り合いがない','努力が報われない','壁にぶつかって先に進めない','弱い相手に勝っても意味がない'],a:0,e:'暖簾（のれん）を押しても手応えがないことから、働きかけても反応がなく張り合いがないことのたとえです。'},
+  {id:666,cat:'慣用句',q:'「二枚舌を使う」の意味は？',cs:['前後矛盾することを言ってうそをつく','上手な話術で相手を説得する','二つの言語を話せる','遠まわしに事実を伝える'],a:0,e:'蛇の二股に分かれた舌から、前後矛盾したことを言ったりうそをついたりすることのたとえです。'},
+  {id:667,cat:'慣用句',q:'「歯が浮く」の意味は？',cs:['お世辞や嫌みな言葉で不快な気持ちになる','歯が痛くなる','食べ物が歯に合わない','恥ずかしくてたまらない'],a:0,e:'お世辞や甘い言葉を聞いて、歯が浮くような不快な気持ちになることのたとえです。'},
+  {id:668,cat:'慣用句',q:'「顔が広い」の意味は？',cs:['交際範囲が広く知り合いが多い','有名で多くの人に知られている','さまざまな分野の人とつながりがある','社交的で人脈が豊か'],a:0,e:'顔が広く世間に知られているように、交際の範囲が広く多くの人と知り合いであることのたとえです。'},
+  {id:669,cat:'慣用句',q:'「鵜呑みにする」の意味は？',cs:['内容を確かめず言われた通りに信じる','よく考えずにそのまま受け入れる','批判的に考えず信じ込む','確認せずに従う'],a:0,e:'鵜が魚を丸ごと呑み込むように、内容をよく確かめずにそのまま信じることのたとえです。'},
+  {id:670,cat:'慣用句',q:'「油を売る」の意味は？',cs:['仕事をさぼってむだ話をする','時間を浪費する','働かずにぐずぐずする','怠けて時間を無駄にする'],a:0,e:'昔の油売りが客と世間話をしながらなかなか商売をしなかったことから、仕事もせずむだ話をすることのたとえです。'},
+  {id:671,cat:'慣用句',q:'「頭が痛い」の意味は？',cs:['解決が難しくて困っている','心配事があって悩んでいる','難しい問題を抱えている','どうしてよいかわからない'],a:0,e:'頭痛がするほど悩むことから、処理が難しい問題があって困っていることのたとえです。'},
+  {id:672,cat:'慣用句',q:'「板挟みになる」の意味は？',cs:['二つの勢力の間に挟まれて苦しむ','大きなプレッシャーを感じる','一人で問題を抱え込む','正しい判断がわからなくなる'],a:0,e:'二枚の板に挟まれるように、二つの立場や考えの間に立って身動きが取れず苦しむことのたとえです。'},
+  {id:673,cat:'慣用句',q:'「鼻が高い」の意味は？',cs:['誇りに思って得意げにしている','自慢に思っている','誇らしい気分でいる','面目を保っている'],a:0,e:'高い鼻を持つように誇り高く見えることから、誇りに思って得意げにしていることのたとえです。'},
+  {id:674,cat:'慣用句',q:'「耳を傾ける」の意味は？',cs:['熱心に聞く','注意して聞く','耳を向けてよく聞く','真剣に話を聞く'],a:0,e:'耳を傾けて聞くように、熱心に、注意深く聞くことのたとえです。'},
+  {id:675,cat:'慣用句',q:'「口火を切る」の意味は？',cs:['物事の最初のきっかけをつくる','議論の口火になる','議論や交渉を始める','話し合いを最初に始める'],a:0,e:'火縄銃の口火に点火するように、物事のはじまりとなる行動を最初に起こすことのたとえです。'},
+  {id:676,cat:'慣用句',q:'「足をひっぱる」の意味は？',cs:['他人の活動や成功を邪魔する','相手の仕事を妨害する','なかなかうまくいかせない','足を引っ張って転ばせる'],a:0,e:'足を引っ張って進めなくするように、他人の活動や成功の邪魔をすることのたとえです。'},
+  {id:677,cat:'慣用句',q:'「手も足も出ない」の意味は？',cs:['どうすることもできない','完全に打つ手がない','なすすべがない','全くかなわない'],a:0,e:'手も足も出せずにいる状態から、どうすることもできない、太刀打ちできないことのたとえです。'},
+  {id:678,cat:'慣用句',q:'「腰が低い」の意味は？',cs:['謙虚でへりくだった態度をとる','礼儀正しくへりくだっている','丁寧で謙虚だ','誰にでも謙虚に接する'],a:0,e:'腰を低くするように、謙虚でへりくだった態度をとることのたとえです。'},
+  {id:679,cat:'慣用句',q:'「骨を折る」の意味は？',cs:['苦労して一生懸命に努力する','人のために一生懸命尽力する','面倒なことを引き受ける','大変な苦労をする'],a:0,e:'骨が折れるほど苦労するように、人のために苦労して一生懸命に尽力することのたとえです。'},
+  {id:680,cat:'慣用句',q:'「口を酸っぱくして言う」の意味は？',cs:['何度も繰り返して言う','厳しく言い聞かせる','しつこく同じことを言う','強調して言う'],a:0,e:'何度も繰り返して言いすぎて口が酸っぱくなるほどから、繰り返し言い聞かせることのたとえです。'},
+  {id:681,cat:'慣用句',q:'「腕を磨く」の意味は？',cs:['技術や実力を向上させる','練習して腕前を上げる','技能を高める','腕前を向上させる'],a:0,e:'腕を磨くように、技術や実力をより向上させることのたとえです。'},
+  {id:682,cat:'慣用句',q:'「泣きを見る」の意味は？',cs:['損をしてひどい目にあう','悲しくて泣いてしまう','思わぬ幸運が舞い込む','嬉し涙を流す'],a:0,e:'泣くような状況に追い込まれることから、損をしたりつらい思いをしたりすることのたとえです。'},
+  {id:683,cat:'慣用句',q:'「胸騒ぎがする」の意味は？',cs:['何か悪いことが起きそうで不安になる','嫌な予感がする','心が落ち着かない','胸がざわざわする'],a:0,e:'胸がさわさわとして落ち着かない感じから、何か悪いことが起きそうな予感がして不安に感じることのたとえです。'},
+  {id:684,cat:'慣用句',q:'「口が滑る」の意味は？',cs:['言ってはいけないことを思わず言ってしまう','うっかり秘密を話す','言葉が不用意に出てしまう','失言してしまう'],a:0,e:'口が滑らかになってしまうように、思わず言ってはいけないことを言ってしまうことのたとえです。'},
+  {id:685,cat:'慣用句',q:'「雲をつかむよう」の意味は？',cs:['はっきりせずつかみどころがない','実現が難しいこと','想像の産物で現実性がない','非現実的なこと'],a:0,e:'雲をつかもうとしてもつかめないように、はっきりせず実体がつかみにくいことのたとえです。'},
+  {id:686,cat:'慣用句',q:'「目を丸くする」の意味は？',cs:['驚いて目を大きく見開く','驚きのあまり目が丸くなる','びっくりして表情が変わる','信じられないほど驚く'],a:0,e:'驚いて目を丸く大きく開けることから、非常に驚くことのたとえです。'},
+  {id:687,cat:'慣用句',q:'「背中を押す」の意味は？',cs:['ためらっている人を励まして踏み出させる','行動する勇気を与える','決断を促す','前進するよう助ける'],a:0,e:'迷っている人の背中を後ろから押すように、ためらっている人を励まして行動に移させることのたとえです。'},
+  {id:688,cat:'慣用句',q:'「頭が下がる」の意味は？',cs:['非常に感心したり感謝したりする','深く敬う気持ちになる','心から尊敬する','自然に頭が下がるほど感動する'],a:0,e:'感謝や敬意で自然に頭が下がるように、その立派さや素晴らしさに感心・感謝することのたとえです。'},
+  {id:689,cat:'慣用句',q:'「棒に振る」の意味は？',cs:['今まで積み重ねてきたものをなくす','努力の成果を無駄にする','機会を逃す','大切なものを失う'],a:0,e:'棒で振り払うように、これまで積み重ねてきたものや大切な機会を無駄にしてしまうことのたとえです。'},
+  {id:690,cat:'慣用句',q:'「ひざを打つ」の意味は？',cs:['なるほどと思って感心する','急に納得する','思い当たって賛同する','大きく感心する'],a:0,e:'なるほどと感心してひざをたたくように、急に納得したり感心したりすることのたとえです。'},
+  {id:691,cat:'慣用句',q:'「煙に巻く」の意味は？',cs:['相手をごまかしてわかりにくくする','複雑な話でごまかす','わざとわかりにくくして混乱させる','話をそらして本題を隠す'],a:0,e:'煙でものが見えにくくなるように、わけのわからない話でごまかして相手を混乱させることのたとえです。'},
+  {id:692,cat:'慣用句',q:'「立場がない」の意味は？',cs:['恥ずかしくて面目が保てない','その場に居づらい','どう振る舞えばよいかわからない','プライドが傷つく'],a:0,e:'自分の立場や面目が保てず、恥ずかしい思いをすることのたとえです。'},
+  {id:693,cat:'慣用句',q:'「水をあける」の意味は？',cs:['差をつけてはるかに先を行く','大きく引き離す','競争で大差をつける','圧倒的な差で勝つ'],a:0,e:'ボートレースで水面に差をつけるように、競争などで大きな差をつけてはるかに先に行くことのたとえです。'},
+  {id:694,cat:'慣用句',q:'「胸がいっぱいになる」の意味は？',cs:['感動や喜びで心が満たされる','感情があふれて言葉が出ない','強い感情で心がいっぱいになる','感動で涙が出そうになる'],a:0,e:'感動や喜び、悲しみなどの強い感情で心がいっぱいになることのたとえです。'},
+  {id:695,cat:'慣用句',q:'「耳にする」の意味は？',cs:['聞こえてくる','伝え聞く','偶然聞こえる','なんとなく聞く'],a:0,e:'耳に入ってくることから、聞こえてくる、伝え聞くという意味のたとえです。'},
+  {id:696,cat:'慣用句',q:'「手に余る」の意味は？',cs:['自分の能力を超えて処理できない','扱いに困る','手がつけられない','自分では対処できない'],a:0,e:'手からはみ出るように、自分の手に負えないほど難しく処理できないことのたとえです。'},
+  {id:697,cat:'慣用句',q:'「目が離せない」の意味は？',cs:['心配でじっと見続けなければならない','興味があって見続ける','見逃せないほど面白い','気になって目をそらせない'],a:0,e:'心配や関心から目をそらすことができないことのたとえです。'},
+  {id:698,cat:'慣用句',q:'「舌を出す」の意味は？',cs:['相手に気づかれないように陰でバカにする','こっそり馬鹿にする','陰で笑う','裏で軽蔑する'],a:0,e:'相手が見ていないところで舌を出して軽蔑することから、陰でばかにすることのたとえです。'},
+  {id:699,cat:'慣用句',q:'「間が持てない」の意味は？',cs:['会話や時間をうまく埋められない','時間を持て余す','沈黙が気まずい','次の話題がない'],a:0,e:'その場の時間や話をうまく埋めることができず、手持ち無沙汰になったり気まずくなったりすることのたとえです。'},
+  {id:700,cat:'慣用句',q:'「肩を落とす」の意味は？',cs:['失望してがっかりする','落ち込んでうなだれる','気力を失う','悲しんでうつむく'],a:0,e:'失望や悲しみで肩をがっくり落とす姿から、がっかりしてしょんぼりすることのたとえです。'},
+  {id:701,cat:'慣用句',q:'「気が重い」の意味は？',cs:['気が進まなくて憂鬱だ','やる気が起きない','心配でふさいでいる','前向きになれない'],a:0,e:'気分が重くなるように、気が進まなくて憂鬱な気分でいることのたとえです。'},
+  {id:702,cat:'慣用句',q:'「腹が立つ」の意味は？',cs:['怒りを感じる','とても幸せな気持ちになる','深く悲しむ','気分がすっきりする'],a:0,e:'腹の中から怒りの気持ちが立ち上がるように、腹が立つことは怒ることのたとえです。'},
+  {id:703,cat:'慣用句',q:'「骨身を惜しまず」の意味は？',cs:['苦労を厭わず懸命に働く','全力を尽くして頑張る','どんな苦労も引き受ける','体を惜しまず働く'],a:0,e:'骨や身体が傷むほど苦しくてもそれを惜しまずに働くことから、一生懸命に働くことのたとえです。'},
+  {id:704,cat:'慣用句',q:'「胃が痛い」の意味は？',cs:['心配事があって悩んでいる','ストレスでつらい思いをしている','心配でたまらない','不安で胃が痛むほどつらい'],a:0,e:'心配やストレスで胃が痛むほど悩んでいることのたとえです。'},
+  {id:705,cat:'慣用句',q:'「目に余る」の意味は？',cs:['程度がひどくて見ていられない','我慢できないほど酷い','目をそむけたくなるほどひどい','明らかに行き過ぎている'],a:0,e:'目に余るほどひどいことから、あまりひど過ぎて黙って見ていられないことのたとえです。'},
+  {id:706,cat:'慣用句',q:'「口を割る」の意味は？',cs:['秘密や本当のことを話す','本当のことを白状する','自白する','隠していたことを話す'],a:0,e:'固く閉じた口を割るように、隠していた秘密や本当のことを話すことのたとえです。'},
+  {id:707,cat:'慣用句',q:'「手が早い」の意味は？',cs:['仕事が速い','すぐに手を出す','暴力に訴えやすい','行動が機敏だ'],a:0,e:'手が速く動くことから、仕事が速いという意味のほか、すぐに手を出す（暴力を振るう）という意味でも使います。'},
+  {id:708,cat:'慣用句',q:'「面目を保つ」の意味は？',cs:['世間に対する体裁を保つ','恥をかかないようにする','誇りを守る','評判を維持する'],a:0,e:'世間に対して体裁・名誉を保つことのたとえです。'},
+  {id:709,cat:'慣用句',q:'「天を仰ぐ」の意味は？',cs:['どうしようもない状況に絶望する','途方に暮れる','空を見上げるほど絶望する','なすすべを失う'],a:0,e:'絶望や途方に暮れて空を見上げることから、どうしようもない状況に絶望することのたとえです。'},
+  {id:710,cat:'慣用句',q:'「水を向ける」の意味は？',cs:['相手に話しかけて気持ちを引き出す','相手が話しやすいように誘いかける','話題を振る','誘導する'],a:0,e:'水を向けて相手をそちらに引き寄せるように、相手が話しやすいように誘いかけることのたとえです。'},
+  {id:711,cat:'慣用句',q:'「波に乗る」の意味は？',cs:['勢いよく物事がうまく進む','流れに乗って成功する','物事が好調に進む','チャンスをつかんで前進する'],a:0,e:'波に乗って快調に進むように、物事が勢いよくうまく進んでいることのたとえです。'},
+  {id:712,cat:'慣用句',q:'「水が合う」の意味は？',cs:['その場所や環境が自分に合っている','生活環境に慣れる','新しい環境でうまくやっていける','環境に適応できる'],a:0,e:'その土地の水が体に合うように、環境や気風が自分に合っていることのたとえです。'},
+  {id:713,cat:'慣用句',q:'「ほねを埋める」の意味は？',cs:['その場所で一生を終える','そこで死ぬまで働く','一生をその場所にささげる','そこで生涯を終える覚悟を持つ'],a:0,e:'骨を埋めるその土地で一生を終えるように、その職場や場所で生涯を過ごす覚悟でいることのたとえです。'},
+  {id:714,cat:'慣用句',q:'「根回しをする」の意味は？',cs:['事前に関係者に話を通しておく','準備を事前にしておく','あらかじめ関係者の同意を取る','根本的な準備をする'],a:0,e:'木を移植する前に根回しをするように、物事を進める前に関係者に話を通しておくことのたとえです。'},
+  {id:715,cat:'慣用句',q:'「金に糸目をつけない」の意味は？',cs:['費用を惜しまず豪快に使う','お金のことを考えずに使う','値段を気にせずに買う','費用を気にしない'],a:0,e:'凧の糸目（糸のつけ方）を気にしないように、費用を惜しまず豪快にお金を使うことのたとえです。'},
+  {id:716,cat:'慣用句',q:'「肌が合う」の意味は？',cs:['気質や性格が合って仲良くやれる','相手と気が合う','ウマが合う','自然に仲良くなれる'],a:0,e:'肌の感触が合うように、気質や性格が合って仲良くやっていけることのたとえです。'},
+  {id:717,cat:'慣用句',q:'「腹が黒い」の意味は？',cs:['心の中に悪意や企みがある','表面は善人のふりをして心は悪い','腹の中が悪意でいっぱいだ','裏で悪いことを考えている'],a:0,e:'腹の中が黒いように、心の奥底に悪意や企みがあることのたとえです。'},
+  {id:718,cat:'慣用句',q:'「図に乗る」の意味は？',cs:['いい気になって調子に乗る','思い通りになってつけあがる','うまくいって慢心する','増長する'],a:0,e:'碁の図（局面）に乗って有利になるように、物事がうまくいっていい気になって調子に乗ることのたとえです。'},
+  {id:719,cat:'慣用句',q:'「水をさす」の意味は？',cs:['うまくいっていることの邪魔をする','雰囲気を壊す','よい関係に亀裂を入れる','水を差すように邪魔をする'],a:0,e:'水を差して具合を悪くするように、うまくいっている物事や関係の邪魔をすることのたとえです。'},
+  {id:720,cat:'慣用句',q:'「耳を疑う」の意味は？',cs:['信じられなくて本当に聞こえたか確かめたくなる','あまりの驚きに聞き直す','信じがたいことを耳にする','予想外のことを聞く'],a:0,e:'自分の耳が正しく聞こえているか疑いたくなるほど、信じられないことを聞いた時のたとえです。'},
+  {id:721,cat:'慣用句',q:'「手塩にかける」の意味は？',cs:['自分で大切に世話をして育てる','こっそり人に任せて育てる','放っておいて自然に育てる','お金をかけて専門家に育てさせる'],a:0,e:'昔食事に自分で塩を加えたことから、自分で直接手をかけて大切に世話をして育てることのたとえです。'},
+  {id:722,cat:'慣用句',q:'「気が散る」の意味は？',cs:['集中できなくなる','注意が他に向いてしまう','気持ちが途切れる','注意力が落ちる'],a:0,e:'気持ちがあちこちに散ってしまうように、集中できなくなることのたとえです。'},
+  {id:723,cat:'慣用句',q:'「心を打つ」の意味は？',cs:['感動させる','強く心に響く','心に感動を与える','深く感銘を与える'],a:0,e:'心を打ち動かすように、強く心に響いて感動させることのたとえです。'},
+  {id:724,cat:'慣用句',q:'「腹に一物ある」の意味は？',cs:['内心に何か企みがある','表に出さない思惑がある','心の中に秘密がある','隠れた目的がある'],a:0,e:'腹の中に何かを隠しているように、心の中に隠れた企みや目的があることのたとえです。'},
+  {id:725,cat:'慣用句',q:'「息をのむ」の意味は？',cs:['驚いたり緊張したりして一瞬息が止まる','あまりの驚きに声が出ない','美しさや驚きで一瞬固まる','緊張で息が止まりそうになる'],a:0,e:'驚いたり緊張したりして一瞬息をのむことから、強い驚きや緊張で息が止まる様子のたとえです。'},
+  {id:726,cat:'慣用句',q:'「鼻をあかす」の意味は？',cs:['相手の意表をついて出し抜く','出し抜いて相手を驚かせる','相手を一歩先回りして驚かせる','相手より先に成功する'],a:0,e:'鼻をあかすとは相手を出し抜くことで、相手が気づかないうちに先手を打って驚かせることのたとえです。'},
+  {id:727,cat:'慣用句',q:'「目もくれない」の意味は？',cs:['全く関心を示さない','無視する','相手にしない','見向きもしない'],a:0,e:'目もやらないほど関心がないことから、全く相手にしないことのたとえです。'},
+  {id:728,cat:'慣用句',q:'「血がにじむ」の意味は？',cs:['涙ぐましい努力をする','非常に苦労する','血がにじむほどの努力をする','並大抵でない苦労をする'],a:0,e:'血がにじむほどの苦労や努力をするという意味で、非常に苦しい努力をすることのたとえです。'},
+  {id:729,cat:'慣用句',q:'「耳が遠い」の意味は？',cs:['聞こえにくい','難聴だ','聞き取りにくい','音が聞こえない'],a:0,e:'耳が遠くて聞こえにくいことから、聴力が落ちていて聞こえにくいことのたとえです。'},
+  {id:730,cat:'慣用句',q:'「顔をつぶす」の意味は？',cs:['相手の面目を失わせる','恥をかかせる','プライドを傷つける','名誉を傷つける'],a:0,e:'顔（面目）をつぶすように、相手の名誉や面目を失わせることのたとえです。'},
+  {id:731,cat:'慣用句',q:'「蚊帳の外に置かれる」の意味は？',cs:['仲間の輪から外されて無視される','虫に刺されて追い払われる','暑い場所に閉じ込められる','外でひとりぼっちになる'],a:0,e:'蚊帳（かや）の外に置かれて中に入れないことから、仲間の輪から外されて無視されることのたとえです。'},
+  {id:732,cat:'慣用句',q:'「目から火が出る」の意味は？',cs:['強い衝撃や痛みを受ける','頭を強く打ったような痛み','強い刺激を受ける','ものすごい衝撃を受ける'],a:0,e:'目から火が出るほどの強い衝撃から、非常に強い痛みや刺激を受けることのたとえです。'},
+  {id:733,cat:'慣用句',q:'「てこでも動かない」の意味は？',cs:['何をしても動かそうとしても頑として動かない','絶対に意見を変えない','てこを使っても動かないほど固い','断固として従わない'],a:0,e:'てこを使っても動かせないほどから、何をしても動じず頑として動かないことのたとえです。'},
+  {id:734,cat:'慣用句',q:'「根に持つ」の意味は？',cs:['恨みをずっと忘れずに心にとどめる','怒りをいつまでも持ち続ける','恨みを長く抱く','忘れられない思いを持ち続ける'],a:0,e:'根のように深くとどまることから、恨みや怒りをいつまでも忘れずに心の底に持ち続けることのたとえです。'},
+  {id:735,cat:'慣用句',q:'「幕を引く」の意味は？',cs:['物事を終わらせる','劇を終わらせる','終わりにする','締めくくりをつける'],a:0,e:'劇の幕を引いて終わらせるように、物事を終わりにすることのたとえです。'},
+  {id:736,cat:'慣用句',q:'「足取りが重い」の意味は？',cs:['気が進まず憂鬱な様子','なんとなく行きたくない','重い足どりで気乗りしない','やる気がなく前進できない'],a:0,e:'足が重くて前に進まないように、気が進まなくてなんとなく嫌だという様子のたとえです。'},
+  {id:737,cat:'慣用句',q:'「腰を据える」の意味は？',cs:['しっかり腰を落ち着けて取り組む','じっくりと取り組む','長期的に取り組む','本格的に始める'],a:0,e:'腰を落ち着けてしっかりと構えるように、物事にしっかりと腰を据えてじっくり取り組むことのたとえです。'},
+  {id:738,cat:'慣用句',q:'「顔色をうかがう」の意味は？',cs:['相手の様子を見て機嫌を探る','相手の気持ちを読み取ろうとする','相手の反応を伺う','相手の気分に合わせて行動する'],a:0,e:'相手の顔の色（表情）を見て機嫌や様子を探ることから、相手の様子を伺ってどうするかを判断することのたとえです。'},
+  {id:739,cat:'慣用句',q:'「熱に浮かされる」の意味は？',cs:['何かに夢中になって我を忘れる','熱狂して冷静さを失う','夢中になりすぎる','興奮して判断力がなくなる'],a:0,e:'熱で正常な判断ができなくなるように、何かに夢中になって我を忘れ冷静な判断ができなくなることのたとえです。'},
+  {id:740,cat:'慣用句',q:'「枚挙にいとまがない」の意味は？',cs:['数え上げると限りがないほどたくさんある','一つ一つ挙げると時間がかかる','例を挙げきれないほど多い','いくらでも例がある'],a:0,e:'一枚ずつ挙げていくと時間が足りないほど多いことから、例が多すぎて数え切れないことのたとえです。'},
+  {id:741,cat:'慣用句',q:'「目を見張る」の意味は？',cs:['驚いてじっと見つめる','感心して大きく目を開く','見事さに感動する','驚きや感動で目を見開く'],a:0,e:'驚いて目を大きく見開いてじっと見るように、驚きや感動で目を見開くことのたとえです。'},
+  {id:742,cat:'慣用句',q:'「指をくわえる」の意味は？',cs:['うらやましくて何もできない','指をくわえて羨望の目で見る','何もできずに羨ましく思う','傍観するしかない'],a:0,e:'指をくわえてうらやましそうに見るように、欲しいのに手が出せず羨ましく思うことのたとえです。'},
+  {id:743,cat:'慣用句',q:'「腹をきめる」の意味は？',cs:['覚悟を決めて決断する','意志を固める','決心する','腹をくくる'],a:0,e:'腹（=心）を決めるように、しっかりと覚悟を持って決断することのたとえです。'},
+  {id:744,cat:'慣用句',q:'「血の気が引く」の意味は？',cs:['恐怖や驚きで顔が青ざめる','ショックで顔から血の気がなくなる','恐ろしくてぞっとする','驚いて顔色が変わる'],a:0,e:'顔から血の色が引くほど恐怖や驚きを感じることから、顔が青ざめるほど恐ろしいことのたとえです。'},
+  {id:745,cat:'慣用句',q:'「いち早く」の意味は？',cs:['他の誰よりも早く','最も早く','素早く','時間をかけず'],a:0,e:'いち（一番）早くということで、他の誰よりも最初に、素早く行動することを意味します。'},
+  {id:746,cat:'慣用句',q:'「気を引く」の意味は？',cs:['相手の注意や関心を引き付ける','相手を引き付ける','注意を向けさせる','関心を持たせる'],a:0,e:'相手の気持ちを引き付けるように、相手の注意や関心を自分に引き付けようとすることのたとえです。'},
+  {id:747,cat:'慣用句',q:'「一線を画す」の意味は？',cs:['明確に区別する','はっきりと境界をつける','他と区別して際立たせる','あるものとは別物だと示す'],a:0,e:'一本の線を引いて区別するように、他とはっきりと区別することのたとえです。'},
+  {id:748,cat:'慣用句',q:'「眠れない夜を過ごす」ことを慣用句で言うと？',cs:['枕を高くして寝る','目が覚める','寝耳に水','まんじりともしない'],a:3,e:'まんじりともしないとは少しも眠れない（まったくうとうともしない）ことを表す表現です。「枕を高くして寝る」は心配事がなく安眠できることの意味で逆です。'},
+  {id:749,cat:'慣用句',q:'「ひと肌ぬぐ」の意味は？',cs:['積極的に力を貸す','裸になって頑張る','本気で手伝う','一生懸命助ける'],a:0,e:'着物を脱いで裸になって働くほどの気持ちで、積極的に力を貸すことのたとえです。'},
+  {id:750,cat:'慣用句',q:'「耳が早い」の意味は？',cs:['情報をすばやく聞きつける','噂話を聞くのが速い','情報収集が得意','新しい情報を早く手に入れる'],a:0,e:'耳が速く情報をキャッチできるように、話や情報をすばやく聞きつけることのたとえです。'},
+  {id:751,cat:'慣用句',q:'「しり馬に乗る」の意味は？',cs:['他人の意見や行動に便乗する','自分で考えず人について行く','流れに乗って同じことをする','便乗する'],a:0,e:'馬の尻に乗って同じ方向に行くように、自分の判断なしに他人の言動に便乗することのたとえです。'},
+  {id:752,cat:'慣用句',q:'「目をかける」の意味は？',cs:['かわいがって特別に目をかける','特に注目して世話をする','目を向けて面倒を見る','特別に贔屓する'],a:0,e:'目を向けて見守るように、ある人を特別にかわいがって目を配り世話をすることのたとえです。'},
+  {id:753,cat:'慣用句',q:'「肩で風を切る」の意味は？',cs:['威張って堂々と歩く','意気揚々と歩く','自信たっぷりに行動する','偉そうにふるまう'],a:0,e:'肩を張って風を切るように歩くことから、威張って堂々と歩くことのたとえです。'},
+  {id:754,cat:'慣用句',q:'「息の根を止める」の意味は？',cs:['完全にやっつける','相手を完全に負かす','完璧に打ち負かす','完全に消し去る'],a:0,e:'息の根を止めて生きられなくするように、完全にやっつけて再起できないようにすることのたとえです。'},
+  {id:755,cat:'慣用句',q:'「腑に落ちない」の意味は？',cs:['納得できない','理解できない','腑（内臓）が落ちないほど納得できない','すっきりしない'],a:0,e:'腑（はらわた）に落ちないほど納得できないことから、どうしても納得や理解ができないことのたとえです。'},
+  {id:756,cat:'慣用句',q:'「胸をなでおろす」の意味は？',cs:['心配事が解決してほっとする','不安が消えて安堵する','ほっと胸をなでおろす','安心する'],a:0,e:'不安で張りつめていた胸をなでおろすように、心配事が解消されてほっと安心することのたとえです。'},
+  {id:757,cat:'慣用句',q:'「身の毛がよだつ」の意味は？',cs:['恐怖や嫌悪で寒気がする','ぞっとするほど怖い','恐ろしくて鳥肌が立つ','恐怖で体が震える'],a:0,e:'体毛が逆立つほど恐怖や嫌悪を感じることから、ぞっとするほど怖い思いをすることのたとえです。'},
+  {id:758,cat:'慣用句',q:'「角が立つ」の意味は？',cs:['言葉や行為が相手の感情を傷つける','言い方がきつく角が立つ','表現がとげとげしい','物事がうまくいかなくなる'],a:0,e:'角（かど）が立って引っかかるように、言い方や行い方が相手の感情を傷つけてしまうことのたとえです。'},
+  {id:759,cat:'慣用句',q:'「うり二つ」の意味は？',cs:['そっくりで見分けがつかないほど似ている','二つとも同じに見える','双子のように似ている','区別がつかないほど似ている'],a:0,e:'二つの瓜がそっくりなように、二つのものや二人の人物がとても似ていることのたとえです。'},
+  {id:760,cat:'慣用句',q:'「頭角を現す」の意味は？',cs:['才能や実力が際立って目立つようになる','多くの中から抜きんでる','実力を発揮して注目される','才能が開花する'],a:0,e:'頭（あたま）の角（かど）が際立つように、才能や実力が他の人より抜き出て目立つようになることのたとえです。'},
+
+  // ── 語彙 761-880 ──
+  {id:761,cat:'語彙',q:'「あいまい」の意味として正しいものは？',cs:['はっきりしないこと','少し違うこと','正確でないこと','わかりにくいこと'],a:0,e:'曖昧とは、物事がはっきりしていないこと、明確でないことを意味します。'},
+  {id:762,cat:'語彙',q:'「おごそか」の意味として正しいものは？',cs:['厳かで近づきにくいほど堂々としている','真剣で厳しい様子','静かで落ち着いた様子','立派で格調がある様子'],a:0,e:'厳かとは、重々しく尊厳があり、気安く近づきにくいほど堂々としている様子を意味します。'},
+  {id:763,cat:'語彙',q:'「つぶさに」の意味として正しいものは？',cs:['詳しく細かく','急いで素早く','大まかに','うろ覚えで'],a:0,e:'つぶさに（具に）とは、細かい部分まで詳しく、という意味の副詞です。'},
+  {id:764,cat:'語彙',q:'「ゆうゆう」の意味として正しいものは？',cs:['余裕があってのんびりした様子','焦って急いでいる様子','きびきびと動く様子','せかせかと忙しい様子'],a:0,e:'悠々とは、落ち着いて余裕があり、のんびりとした様子を意味します。'},
+  {id:765,cat:'語彙',q:'「ほうふ」の意味として正しいものは？',cs:['豊かで十分にある','少なくて足りない','ちょうどよい量がある','珍しくて希少だ'],a:0,e:'豊富とは、ある物が豊かで十分にあることを意味します。'},
+  {id:766,cat:'語彙',q:'「かんぺき」の意味として正しいものは？',cs:['欠点が全くなく完全だ','やや不十分だ','ほぼ完成している','よい出来だ'],a:0,e:'完璧とは、欠点や不完全な部分が全くなく、完全であることを意味します。'},
+  {id:767,cat:'語彙',q:'「ざんねん」の意味として正しいものは？',cs:['思い通りにならなくて心残りに思うこと','うれしくて気持ちが高まること','満足して喜ぶこと','期待通りになって安心すること'],a:0,e:'残念とは、期待や望みが思い通りにならなくて、心残りに思うことを意味します。'},
+  {id:768,cat:'語彙',q:'「きたい」の意味として正しいものは？',cs:['よいことを願って待ち望むこと','がっかりして諦めること','怒りを感じること','心配して不安になること'],a:0,e:'期待とは、よいことを望んで、そうなることを待ち望むことを意味します。'},
+  {id:769,cat:'語彙',q:'「ふさわしい」の意味として正しいものは？',cs:['その状況や性質にぴったり合っている','格別に優れている','目立って良い','非常に価値がある'],a:0,e:'ふさわしいとは、その場の状況や条件に対してぴったり合っている、適切であるという意味です。'},
+  {id:770,cat:'語彙',q:'「おだやか」の意味として正しいものは？',cs:['静かで落ち着いている','騒がしく元気な様子','激しくて勢いがある','厳しく近づきにくい'],a:0,e:'穏やかとは、激しくなく静かで落ち着いている様子を意味します。天気や人の態度などに使います。'},
+  {id:771,cat:'語彙',q:'「かなう」の意味として正しいものは？',cs:['望みが実現する','諦めて断念する','遠のいて行く','困難になる'],a:0,e:'かなう（叶う）とは、望みや希望が実現することを意味します。'},
+  {id:772,cat:'語彙',q:'「こうかん」（好感）の意味として正しいものは？',cs:['好ましい気持ち','強い怒りの感情','深い悲しみの感情','冷たく拒絶する態度'],a:0,e:'好感とは、相手に対して好ましく感じる気持ちや好意的な感情のことです。'},
+  {id:773,cat:'語彙',q:'「たくみ」の意味として正しいものは？',cs:['上手で巧みな様子','不器用で下手な様子','乱暴で粗い様子','ぶきっちょな様子'],a:0,e:'巧みとは、技術や方法が優れていて上手な様子を意味します。'},
+  {id:774,cat:'語彙',q:'「すがすがしい」の意味として正しいものは？',cs:['清々しく気持ちよい','重苦しくどんよりした','薄暗く陰鬱な','不快でうっとうしい'],a:0,e:'清々しいとは、爽やかで気持ちよい様子を意味します。清潔で気分が晴れ晴れとする様子です。'},
+  {id:775,cat:'語彙',q:'「むじゃき」の意味として正しいものは？',cs:['邪気がなく純真で無邪気な様子','老練で計算高い様子','意地悪で腹黒い様子','狡猾で抜け目ない様子'],a:0,e:'無邪気とは、邪心や悪意がなく、純真で素直な様子を意味します。'},
+  {id:776,cat:'語彙',q:'「てきかく」の意味として正しいものは？',cs:['的確で正確に当たっていること','的外れで見当違いなこと','あやふやで不確かなこと','大ざっぱで粗い様子'],a:0,e:'的確とは、判断や表現などが正確に当たっていること、的を射ていることを意味します。'},
+  {id:777,cat:'語彙',q:'「ていさい」の意味として正しいものは？',cs:['外から見た見かけや格好','物事の本質や内容','実際の実力や内実','隠された本当の姿'],a:0,e:'体裁とは、外から見た格好や見かけ、また世間に対して恥ずかしくない様子のことを意味します。'},
+  {id:778,cat:'語彙',q:'「けわしい」の意味として正しいものは？',cs:['山道などが急で険しい様子','厳しくきつい様子','難しくて困難だ','表情が厳しい'],a:0,e:'険しいとは、山道などが急で登り下りが困難な様子や、表情などが厳しい様子を意味します。'},
+  {id:779,cat:'語彙',q:'「めでたい」の意味として正しいものは？',cs:['喜ばしいお祝いごとに相応しい','悲しくて胸が痛い','不吉なことが起こりそうだ','腹立たしく怒りを感じる'],a:0,e:'目出たいとは、祝うべき喜ばしい出来事に相応しい様子を意味します。'},
+  {id:780,cat:'語彙',q:'「はかない」の意味として正しいものは？',cs:['頼りなくむなしい様子','力強く確かな様子','長い年月をかけてじっくり育つ','安心できて信頼できる'],a:0,e:'儚いとは、頼りなくむなしい様子、すぐに消えてなくなりそうな様子を意味します。'},
+  {id:781,cat:'語彙',q:'「りんき応変」の意味として正しいものは？',cs:['状況の変化に応じて適切に対応すること','どんな状況でも同じやり方を通すこと','あらかじめ決めた計画を必ず実行すること','一度決めたことは変えないこと'],a:0,e:'臨機応変とは、その時々の状況や変化に応じて、柔軟かつ適切に対応することを意味します。'},
+  {id:782,cat:'語彙',q:'「せんさい」の意味として正しいものは？',cs:['細かいことに気が付く繊細な様子','大ざっぱで細かいことを気にしない','鈍くて感じにくい様子','強くてたくましい様子'],a:0,e:'繊細とは、細かいことに気が付く、感受性が豊かで傷つきやすい様子を意味します。'},
+  {id:783,cat:'語彙',q:'「とんちんかん」の意味として正しいものは？',cs:['見当外れで的はずれな様子','正確に核心を突いた','的確に答えを出した','よく考えた上で判断した'],a:0,e:'頓珍漢とは、言動が的外れでちぐはぐな様子を意味します。'},
+  {id:784,cat:'語彙',q:'「うっとうしい」の意味として正しいものは？',cs:['気持ちが晴れずじめじめして煩わしい様子','すがすがしくさわやかな様子','明るく元気いっぱいな様子','落ち着いて穏やかな様子'],a:0,e:'鬱陶しいとは、天気や気持ちが晴れ晴れせずじめじめと重苦しい感じや、邪魔で煩わしい様子を意味します。'},
+  {id:785,cat:'語彙',q:'「てんてこまい」の意味として正しいものは？',cs:['忙しくてひどく慌てる様子','ゆったりとのんびりする様子','きちんと計画通りに進む','余裕を持って落ち着いて行動する'],a:0,e:'てんてこ舞いとは、非常に忙しくてあわてて動き回っている様子を意味します。'},
+  {id:786,cat:'語彙',q:'「ひたむき」の意味として正しいものは？',cs:['一つのことに専念して真剣に取り組む様子','気ままにのんびりとした様子','次々と気が変わる様子','なんとなく取り組む様子'],a:0,e:'ひたむきとは、一つのことに一途に専念して真剣に取り組んでいる様子を意味します。'},
+  {id:787,cat:'語彙',q:'「しゅんかん」の意味として正しいものは？',cs:['ほんのわずかな時間','とても長い時間','永遠に続く時間','時間の感覚がない状態'],a:0,e:'瞬間とは、ほんのわずかな時間のことを意味します。'},
+  {id:788,cat:'語彙',q:'「どうよう」（動揺）の意味として正しいものは？',cs:['驚きや不安で心が乱れる','落ち着いて冷静な状態','心が安定して穏やかな様子','何も感じない無関心な状態'],a:0,e:'動揺とは、驚きや不安、衝撃などで心が乱れ不安定になることを意味します。'},
+  {id:789,cat:'語彙',q:'「かれる」（枯れる）の意味として正しいものは？',cs:['植物が水分を失って死ぬ','すくすくと生長する','生き生きと育つ','花が咲いて元気になる'],a:0,e:'枯れるとは、植物が水分や栄養を失って死ぬこと、または勢いが衰えることを意味します。'},
+  {id:790,cat:'語彙',q:'「はぐくむ」の意味として正しいものは？',cs:['大切に育てて発展させる','放っておいて自然に育つ','抑えつけて成長を妨げる','お金をかけずに育てる'],a:0,e:'育むとは、大切にして育て、発展させることを意味します。'},
+  {id:791,cat:'語彙',q:'「ゆとり」の意味として正しいものは？',cs:['心や時間に余裕があること','ぎりぎりで余裕がないこと','焦りの中にいること','時間が足りない状態'],a:0,e:'ゆとりとは、心や時間・空間などに余裕があることを意味します。'},
+  {id:792,cat:'語彙',q:'「かっとう」の意味として正しいものは？',cs:['心の中で相反する気持ちが争う','二人の人が激しく言い争う','大勢でやかましく騒ぐ','外から攻撃されて苦しむ'],a:0,e:'葛藤とは、相反する気持ちや欲求が同時にあって心の中で争い、どうすべきか迷う状態を意味します。'},
+  {id:793,cat:'語彙',q:'「あいそ」の意味として正しいものは？',cs:['人当たりがよく愛想がある様子','冷たくよそよそしい様子','無口で暗い様子','人を見下した様子'],a:0,e:'愛想とは、人に対して好意を示す親しみのある態度や振る舞いのことを意味します。'},
+  {id:794,cat:'語彙',q:'「みちびく」の意味として正しいものは？',cs:['正しい方向に導いていく','放置して自由にさせる','邪魔して妨げる','遠ざけて切り離す'],a:0,e:'導くとは、正しい方向や目標に向けて案内したり教えたりすることを意味します。'},
+  {id:795,cat:'語彙',q:'「くつろぐ」の意味として正しいものは？',cs:['心身をゆったりとさせてリラックスする','緊張して気を引き締める','集中して真剣に取り組む','活発に体を動かす'],a:0,e:'くつろぐとは、緊張をほぐして心身をゆったりとさせ、リラックスすることを意味します。'},
+  {id:796,cat:'語彙',q:'「かくご」の意味として正しいものは？',cs:['危険や困難を覚悟して心の準備をすること','何も考えずに行動すること','楽しみに待つこと','すぐにあきらめること'],a:0,e:'覚悟とは、困難や危険を予測してそれを受け入れ、心の準備をすることを意味します。'},
+  {id:797,cat:'語彙',q:'「ながい目で見る」の意味として正しいものは？',cs:['焦らず長期的な視点で見守る','すぐに結果を求めて判断する','厳しく批判的に評価する','詳細に細かく分析する'],a:0,e:'長い目で見るとは、すぐに結果を求めず、長期的な視野で物事を見守ることを意味します。'},
+  {id:798,cat:'語彙',q:'「むすびつき」の意味として正しいものは？',cs:['つながりや関係のこと','無関係で別々のこと','切り離されて孤立していること','反発し合って離れること'],a:0,e:'結びつきとは、物事や人が互いにつながっている関係、またはその関係のことを意味します。'},
+  {id:799,cat:'語彙',q:'「しみじみ」の意味として正しいものは？',cs:['深く心に染みて感じる様子','あっさりと軽く感じる様子','何も感じない無関心な様子','表面だけ見て判断する様子'],a:0,e:'しみじみとは、物事を深く心に感じ、しみじみと感じる様子を意味します。'},
+  {id:800,cat:'語彙',q:'「たくわえる」の意味として正しいものは？',cs:['将来のために蓄えておく','今すぐ全部使ってしまう','他の人に分け与える','捨てて身軽になる'],a:0,e:'蓄えるとは、将来のために物や金銭、力などを保存しておくことを意味します。'},
+  {id:801,cat:'語彙',q:'「はればれ」の意味として正しいものは？',cs:['心がすっきりして明るい様子','暗くふさぎ込んだ気持ち','何か心配事がある様子','落ち着かない様子'],a:0,e:'晴れ晴れとは、気分が明るくすっきりしている様子を意味します。'},
+  {id:802,cat:'語彙',q:'「ふとどき」の意味として正しいものは？',cs:['礼儀を知らず不届きな様子','礼儀正しく丁寧な様子','非常に思いやりがある様子','感謝の気持ちを示す様子'],a:0,e:'不届きとは、礼儀や道理をわきまえない様子、非常識で無礼な様子を意味します。'},
+  {id:803,cat:'語彙',q:'「よゆう」の意味として正しいものは？',cs:['余裕があって十分な状態','切迫していて追い詰められた状態','焦りが強くて落ち着かない状態','不足して足りない状態'],a:0,e:'余裕とは、物事に必要な分を超えた余りがあること、時間・お金・心などに余りがある状態を意味します。'},
+  {id:804,cat:'語彙',q:'「うてん」の意味として正しいものは？',cs:['雨が降っている天気','よく晴れた天気','風が強い天気','霧が深い天気'],a:0,e:'雨天とは、雨が降っている天気のことを意味します。'},
+  {id:805,cat:'語彙',q:'「ぼうかん」の意味として正しいものは？',cs:['何もせずに傍らで見ている','積極的に参加して協力する','率先して問題を解決する','中心になってリードする'],a:0,e:'傍観とは、物事に加わらず、ただ傍で見ているだけのことを意味します。'},
+  {id:806,cat:'語彙',q:'「むすびつける」の意味として正しいものは？',cs:['二つ以上のものを関連づける','全く別々のものとして切り離す','違いを際立たせて区別する','関係を断ち切る'],a:0,e:'結びつけるとは、二つ以上のものを関連させたり、物理的につなぎ合わせたりすることを意味します。'},
+  {id:807,cat:'語彙',q:'「たんとう」の意味として正しいものは？',cs:['ある仕事や役割を担当すること','仕事を他の人に押しつける','責任を回避して逃げる','複数人で仕事を分担しない'],a:0,e:'担当とは、ある仕事や役割を引き受けて責任を持つことを意味します。'},
+  {id:808,cat:'語彙',q:'「きょうかん」の意味として正しいものは？',cs:['相手の気持ちに同感して共に感じること','相手を冷静に分析すること','相手と激しく対立すること','感情を全く持たないこと'],a:0,e:'共感とは、他者の気持ちや感情を自分のこととして感じること、相手の考えや感情に同意することを意味します。'},
+  {id:809,cat:'語彙',q:'「あっとうてき」の意味として正しいものは？',cs:['他を圧倒するほど非常に強い様子','ほぼ同等で拮抗している様子','ほんのわずかだけ優れている様子','差がほとんどない様子'],a:0,e:'圧倒的とは、他を圧倒するほど力の差が大きく、非常に強い様子を意味します。'},
+  {id:810,cat:'語彙',q:'「ちくいち」の意味として正しいものは？',cs:['一つ一つ詳しく','大まかに要点だけ','まとめて一気に','省いて手短に'],a:0,e:'逐一（ちくいち）とは、物事を一つ一つ順に追って、詳しく全てを意味します。'},
+  {id:811,cat:'語彙',q:'「ゆがむ」の意味として正しいものは？',cs:['形や方向が曲がって正しくなくなる','真っすぐに整えられる','元の形に戻る','完全に修復される'],a:0,e:'歪むとは、形や方向が曲がったりねじれたりして正しくなくなることを意味します。'},
+  {id:812,cat:'語彙',q:'「うわべ」の意味として正しいものは？',cs:['表面だけの見かけ','内面の本当の気持ち','実際の能力や実力','隠された本当の姿'],a:0,e:'上辺とは、外から見える表面だけの部分のことで、内実とは関係なく外見だけの様子を意味します。'},
+  {id:813,cat:'語彙',q:'「ひってき」の意味として正しいものは？',cs:['実力が同じ程度で比べられること','全く及ばないほど大差がある','圧倒的に優れている','比べ物にならないほど弱い'],a:0,e:'匹敵とは、力や価値が同等で比べ合えるほどであることを意味します。'},
+  {id:814,cat:'語彙',q:'「ぼうだい」の意味として正しいものは？',cs:['量や規模が非常に大きいこと','ごくわずかで小さいこと','ちょうどよい量のこと','普通で標準的な大きさ'],a:0,e:'膨大とは、数量や規模が非常に大きく多いことを意味します。'},
+  {id:815,cat:'語彙',q:'「なだらか」の意味として正しいものは？',cs:['傾斜がゆるやかな様子','傾斜が急で険しい様子','凸凹が多くて歩きにくい','崖のように切り立っている'],a:0,e:'なだらかとは、坂などの傾斜が急でなくゆるやかな様子を意味します。'},
+  {id:816,cat:'語彙',q:'「げんそう」の意味として正しいものは？',cs:['現実でないような美しい幻の像','実際に見たことがある具体的な経験','証明された確かな事実','手で触れられる現実のもの'],a:0,e:'幻想とは、現実にはないような美しい夢や想像のことを意味します。'},
+  {id:817,cat:'語彙',q:'「しっかり」の意味として正しいものは？',cs:['確実で安定している様子','ふらふらと頼りない様子','不確かで定まらない様子','弱くて頼れない様子'],a:0,e:'しっかりとは、安定していて確かな様子、または意志や体力などが強い様子を意味します。'},
+  {id:818,cat:'語彙',q:'「こうい」（好意）の意味として正しいものは？',cs:['相手を思いやる親切な気持ち','相手への強い反発','冷たい無関心','相手を批判する気持ち'],a:0,e:'好意とは、相手を好いて思いやる気持ちや、親切な態度・行為のことを意味します。'},
+  {id:819,cat:'語彙',q:'「だいたん」の意味として正しいものは？',cs:['物怖じせず思い切りよく行動する様子','臆病でなかなか行動できない様子','心配しすぎて慎重すぎる様子','細かいことにこだわりすぎる様子'],a:0,e:'大胆とは、危険などを恐れず思い切りよく行動する様子を意味します。'},
+  {id:820,cat:'語彙',q:'「しんちょう」の意味として正しいものは？',cs:['注意深くよく考えて行動する様子','軽はずみで思いつきで行動する様子','考えなしに突き進む様子','無謀でやたらと挑戦する様子'],a:0,e:'慎重とは、軽はずみなことをせず、注意深くよく考えて行動する様子を意味します。'},
+  {id:821,cat:'語彙',q:'「つじつまが合う」の意味として正しいものは？',cs:['話や事実の前後が矛盾なくつながっている','話の内容が面白くてわかりやすい','話し方が上手で聞きやすい','話が短くまとまっている'],a:0,e:'つじつまが合うとは、話や事実の前後関係が矛盾なく一致していることを意味します。'},
+  {id:822,cat:'語彙',q:'「なにげなく」の意味として正しいものは？',cs:['特に意識せず自然に','しっかりと考えて計画的に','大きな目的を持って意識的に','注目を集めようと目立って'],a:0,e:'何気なくとは、特に意図や意識を持たずに自然に行動する様子を意味します。'},
+  {id:823,cat:'語彙',q:'「のどか」の意味として正しいものは？',cs:['穏やかでのんびりした様子','にぎやかで活気ある様子','慌ただしくてせわしない','緊張感があって張り詰めた'],a:0,e:'長閑とは、穏やかでのんびりした雰囲気の様子を意味します。春の日などによく使います。'},
+  {id:824,cat:'語彙',q:'「したしむ」の意味として正しいものは？',cs:['親しく交わったり慣れ親しんだりする','距離を置いて避ける','冷たく接する','他人行儀にふるまう'],a:0,e:'親しむとは、親しく交わったり、物事に馴染んで好きになったりすることを意味します。'},
+  {id:825,cat:'語彙',q:'「あからさま」の意味として正しいものは？',cs:['はっきりと表に出ている様子','慎重に隠している様子','遠まわしに伝える','それとなくほのめかす'],a:0,e:'あからさまとは、隠さずはっきりと表に出している様子を意味します。'},
+  {id:826,cat:'語彙',q:'「ともなう」の意味として正しいものは？',cs:['一緒に行く・付き合う','離れてそれぞれ行動する','反対方向に進む','切り離されてばらばらになる'],a:0,e:'伴うとは、一緒に行くまたは付き合うこと、また物事が一緒に起こることを意味します。'},
+  {id:827,cat:'語彙',q:'「てっきり」の意味として正しいものは？',cs:['確かにそうだと思い込んでいる様子','半信半疑でよくわからない様子','まったくそうと思っていなかった様子','どうなるかわからないと考えている'],a:0,e:'てっきりとは、そうに違いないと思い込んでいる様子を表す副詞です。'},
+  {id:828,cat:'語彙',q:'「こころよい」の意味として正しいものは？',cs:['気持ちよく快い','不快で嫌な感じ','重苦しい気持ち','もやもやとした気分'],a:0,e:'快いとは、気持ちよく感じる様子、心地よい様子を意味します。'},
+  {id:829,cat:'語彙',q:'「やむをえず」の意味として正しいものは？',cs:['仕方がないのでしかたなく','他によい方法があるのに','自分の意志で積極的に','喜んで進んで'],a:0,e:'やむを得ずとは、他に方法がなくてしかたなく、という意味の副詞です。'},
+  {id:830,cat:'語彙',q:'「とぼしい」の意味として正しいものは？',cs:['必要なものが少なくて足りない','十分すぎるほどある','余りがあって豊かだ','必要以上にたくさんある'],a:0,e:'乏しいとは、必要な量や数が少なくて足りない様子を意味します。'},
+  {id:831,cat:'語彙',q:'「よぎる」の意味として正しいものは？',cs:['頭をよぎるように思い浮かんで過ぎる','しっかり心に刻んで忘れない','いつまでも頭から離れない','深く考えて長時間悩む'],a:0,e:'よぎるとは、頭や視野を横切って過ぎることや、思いが浮かんでさっと消えることを意味します。'},
+  {id:832,cat:'語彙',q:'「てまどる」の意味として正しいものは？',cs:['思ったより時間がかかって手間取る','予定通りにさっさと終わる','思ったより早く終わる','効率よくスムーズに進む'],a:0,e:'手間取るとは、思ったより時間や手間がかかってなかなか終わらないことを意味します。'},
+  {id:833,cat:'語彙',q:'「こぼす」（愚痴をこぼす）の意味として正しいものは？',cs:['不満を口に出す','喜びを周りに伝える','感謝の気持ちを表す','嬉しいことを報告する'],a:0,e:'愚痴をこぼすとは、不満や不平を口に出して言うことを意味します。'},
+  {id:834,cat:'語彙',q:'「そっけない」の意味として正しいものは？',cs:['愛想がなく冷たい様子','にこやかで親しみやすい','温かく丁寧に接する','明るく友好的な'],a:0,e:'素っ気ないとは、愛想がなくそっけなく冷たい態度や様子を意味します。'},
+  {id:835,cat:'語彙',q:'「かんげき」の意味として正しいものは？',cs:['強く心を動かされる感動','冷たく感情のない様子','退屈で面白くない気持ち','怒りを感じること'],a:0,e:'感激とは、強く心を動かされて感動することを意味します。'},
+  {id:836,cat:'語彙',q:'「たたずまい」の意味として正しいものは？',cs:['立っている様子や雰囲気','言葉や声の調子','服装や外見だけの印象','運動能力や体力'],a:0,e:'佇まいとは、人が立っている様子や建物・場所の持つ雰囲気のことを意味します。'},
+  {id:837,cat:'語彙',q:'「なごむ」の意味として正しいものは？',cs:['気持ちや雰囲気が和らいでくつろぐ','緊張が高まって張り詰める','争いが激しくなる','気持ちが沈んで暗くなる'],a:0,e:'和むとは、緊張や争いが和らいで、穏やかでくつろいだ気分になることを意味します。'},
+  {id:838,cat:'語彙',q:'「ふとした」の意味として正しいものは？',cs:['何気ない','慎重に計画された','強い意志を持った','綿密に準備した'],a:0,e:'ふとしたとは、特に意図しなかった、何気ないという意味を表す言葉です。'},
+  {id:839,cat:'語彙',q:'「かわりばんこ」の意味として正しいものは？',cs:['順番に交代すること','全員が同時にすること','一人だけが担当すること','誰もしないで放置すること'],a:0,e:'代わりばんこ（交わり番こ）とは、順番を決めて交互に行うことを意味します。'},
+  {id:840,cat:'語彙',q:'「おそれ」の意味として正しいものは？',cs:['悪いことが起きる可能性への不安','良いことが起きるという期待','心が安らいで落ち着いた状態','楽しい気持ちが高まること'],a:0,e:'恐れとは、危険や悪い結果になるかもしれないという不安や心配のことを意味します。'},
+  {id:841,cat:'語彙',q:'「もてなす」の意味として正しいものは？',cs:['心を込めて歓待する','冷たく追い払う','無視してあしらう','邪険に扱う'],a:0,e:'もてなすとは、お客などを心を込めて歓待することを意味します。'},
+  {id:842,cat:'語彙',q:'「りんとして」の意味として正しいものは？',cs:['威厳があって凛々しい様子','へなへなと弱々しい様子','情けなく頼りない様子','優柔不断な様子'],a:0,e:'凛としてとは、毅然として威厳があり、凛々しい様子を意味します。'},
+  {id:843,cat:'語彙',q:'「とうとい」の意味として正しいものは？',cs:['価値があって尊い様子','平凡でありきたりな','価値がなくつまらない','失礼で無礼な'],a:0,e:'尊いとは、価値や品位が高く尊敬すべき様子、またはとても大切な様子を意味します。'},
+  {id:844,cat:'語彙',q:'「なれなれしい」の意味として正しいものは？',cs:['必要以上に親しそうにする様子','礼儀正しく適度な距離を保つ','改まって丁寧に接する','慎み深くよそよそしい'],a:0,e:'馴れ馴れしいとは、礼儀をわきまえず必要以上に親しそうに接する様子を意味します。'},
+  {id:845,cat:'語彙',q:'「おぼろげ」の意味として正しいものは？',cs:['はっきりしないぼんやりした様子','くっきりと鮮明に見える','確かな根拠に基づいている','明確に記憶している'],a:0,e:'おぼろげとは、はっきりせずぼんやりとした様子を意味します。記憶などにもよく使います。'},
+  {id:846,cat:'語彙',q:'「あわてる」の意味として正しいものは？',cs:['驚いて冷静さを失う','落ち着いて冷静に行動する','計画通りにゆっくり進める','注意深く慎重に動く'],a:0,e:'慌てるとは、突然のことに驚いたり急いだりして冷静さを失うことを意味します。'},
+  {id:847,cat:'語彙',q:'「かたわら」の意味として正しいものは？',cs:['すぐそばや隣のこと','遠く離れた場所','真正面や前のこと','見えないところや陰'],a:0,e:'傍らとは、すぐそばや隣のことを意味します。「彼の傍らに立つ」のように使います。'},
+  {id:848,cat:'語彙',q:'「ためらう」の意味として正しいものは？',cs:['すぐに決めることができず迷う','迷いなく決断してすぐ行動する','自信を持って進む','一瞬で判断する'],a:0,e:'躊躇うとは、すぐに決断や行動ができず迷っている状態を意味します。'},
+  {id:849,cat:'語彙',q:'「かがやかしい」の意味として正しいものは？',cs:['輝くように立派で素晴らしい','くすんで暗い様子','平凡でつまらない様子','恥ずかしくみっともない様子'],a:0,e:'輝かしいとは、輝くように明るく立派で、栄誉にあふれている様子を意味します。'},
+  {id:850,cat:'語彙',q:'「はなはだ」の意味として正しいものは？',cs:['非常に・大変に','少し・わずかに','ほとんど・まず','ほどほどに・適度に'],a:0,e:'甚だとは、程度が非常に高いことを意味する副詞で、「非常に」「大変に」という意味です。'},
+  {id:851,cat:'語彙',q:'「いさぎよい」の意味として正しいものは？',cs:['未練なく潔い様子','いつまでも未練がましい様子','執着が強すぎる様子','恥知らずで図々しい様子'],a:0,e:'潔いとは、未練や執着がなく、きっぱりと行動する清々しい様子を意味します。'},
+  {id:852,cat:'語彙',q:'「まかなう」の意味として正しいものは？',cs:['食事の用意をする、または費用を負担する','費用の支払いを断る','他の人に押しつける','何もしないで無視する'],a:0,e:'賄うとは、食事の世話をすること、またはある目的のために費用や物を提供することを意味します。'},
+  {id:853,cat:'語彙',q:'「いたわる」の意味として正しいものは？',cs:['弱い立場の人を大切に思いやる','強い立場から命令する','邪魔を排除して妨げる','見て見ぬふりをして無視する'],a:0,e:'労わるとは、苦労している人や体の弱い人を思いやって大切に扱うことを意味します。'},
+  {id:854,cat:'語彙',q:'「きっぱり」の意味として正しいものは？',cs:['迷いなくはっきりと断言する様子','ためらいがちで曖昧な様子','なんとなくふわっとした様子','どっちつかずで優柔不断な様子'],a:0,e:'きっぱりとは、迷いや曖昧さがなく明確にはっきりとした様子を意味します。'},
+  {id:855,cat:'語彙',q:'「おびただしい」の意味として正しいものは？',cs:['数や量が非常に多い','ほとんどない','ちょうどよい量だ','少なすぎて足りない'],a:0,e:'おびただしいとは、数や量が非常に多い様子を意味します。'},
+  {id:856,cat:'語彙',q:'「てんびんにかける」の意味として正しいものは？',cs:['二つのものを比べて有利な方を選ぶ','どちらか一つだけを深く追求する','考えずに直感だけで決める','公平に均等に分ける'],a:0,e:'天秤にかけるとは、天秤で重さを比べるように、二つの物事を比べて有利・有益な方を選ぶことのたとえです。'},
+  {id:857,cat:'語彙',q:'「うれい」の意味として正しいものは？',cs:['悲しみや心配のある気持ち','晴れやかで明るい気持ち','喜びに満ちた状態','楽しみな気持ち'],a:0,e:'憂いとは、悲しみや心配・不安などのある沈んだ気持ちのことを意味します。'},
+  {id:858,cat:'語彙',q:'「みわたす」の意味として正しいものは？',cs:['遠くまで広く見渡す','一点を集中して見る','目を閉じて想像する','じっくりと細かく調べる'],a:0,e:'見渡すとは、遠くまで、または広い範囲を見渡すことを意味します。'},
+  {id:859,cat:'語彙',q:'「ていねいに」の意味として正しいものは？',cs:['丁寧に注意深く','雑に大ざっぱに','速く手早く','適当に手を抜いて'],a:0,e:'丁寧にとは、注意深くていねいな様子で、または礼儀正しくという意味です。'},
+  {id:860,cat:'語彙',q:'「けがれ」の意味として正しいものは？',cs:['汚れや不浄なこと','清らかで純粋なこと','美しく輝くこと','誠実で正直なこと'],a:0,e:'穢れとは、汚れや不浄なこと、また罪や汚れのことを意味します。'},
+  {id:861,cat:'語彙',q:'「うたがわしい」の意味として正しいものは？',cs:['信頼できず怪しい様子','確かで安心できる様子','信頼が厚くて頼りになる','証明されて確実な'],a:0,e:'疑わしいとは、信頼できず怪しい様子、または本当かどうかよくわからない様子を意味します。'},
+  {id:862,cat:'語彙',q:'「しんぼう」の意味として正しいものは？',cs:['辛さや苦しさをがまんすること','すぐに諦めること','楽なことだけを選ぶ','辛いことから逃げること'],a:0,e:'辛抱とは、辛いことや苦しいことをがまんして耐えることを意味します。'},
+  {id:863,cat:'語彙',q:'「てきする」の意味として正しいものは？',cs:['ある目的に合う','全く合わない','程度を超えている','欠点が目立つ'],a:0,e:'適するとは、ある目的や条件に合っている、相応しいことを意味します。'},
+  {id:864,cat:'語彙',q:'「うかつ」の意味として正しいものは？',cs:['注意が足りなくうっかりしている様子','細心の注意を払っている様子','緻密に計算した様子','鋭い洞察力がある'],a:0,e:'うかつとは、注意が足りなくてうっかりしている様子を意味します。'},
+  {id:865,cat:'語彙',q:'「えんりょ」の意味として正しいものは？',cs:['相手に気をつかって行動を控えること','自分の気持ちを思い切りさらけ出す','遠慮せずはっきりと要求する','自分勝手に行動する'],a:0,e:'遠慮とは、相手に気を遣って自分の気持ちや行動を控えることを意味します。'},
+  {id:866,cat:'語彙',q:'「のぞましい」の意味として正しいものは？',cs:['そうなってほしい望ましい様子','そうなってほしくない様子','困った結果になりそうだ','避けたい状況だ'],a:0,e:'望ましいとは、そうあってほしいと思う、理想的である様子を意味します。'},
+  {id:867,cat:'語彙',q:'「こんなん」の意味として正しいものは？',cs:['やり遂げることが難しい困難な状況','簡単にできる様子','余裕があって楽な状態','すんなりうまくいくこと'],a:0,e:'困難とは、やり遂げることが難しい状況や問題のことを意味します。'},
+  {id:868,cat:'語彙',q:'「おもわしくない」の意味として正しいものは？',cs:['期待通りでなくよくない様子','期待以上で素晴らしい様子','十分すぎるほどよい様子','申し分のない出来だ'],a:0,e:'思わしくないとは、期待や望みに届かず、よくない様子を意味します。'},
+  {id:869,cat:'語彙',q:'「くれぐれも」の意味として正しいものは？',cs:['念を押すよう繰り返し強調して','軽く一言添えて','あとで思い出したら','軽い気持ちで'],a:0,e:'くれぐれもとは、繰り返して念を押すような強い気持ちを込めた副詞です。'},
+  {id:870,cat:'語彙',q:'「ふびん」の意味として正しいものは？',cs:['かわいそうで同情する気持ち','羨ましくて嫉妬する気持ち','冷たく拒絶したい気持ち','素晴らしくて称えたい気持ち'],a:0,e:'不憫とは、かわいそうで同情したくなる様子を意味します。'},
+  {id:871,cat:'語彙',q:'「うわさ」の意味として正しいものは？',cs:['人々の間で言い伝えられる話','本人が公式に発表した情報','証拠で確認された事実','公的な記録に残った内容'],a:0,e:'噂とは、ある人や事柄について世間に広まった話、人々の間で言い伝えられることを意味します。'},
+  {id:872,cat:'語彙',q:'「よそよそしい」の意味として正しいものは？',cs:['親しみがなく他人行儀な様子','気さくで打ち解けた様子','温かみがあって親しみやすい','遠慮なく仲良くする'],a:0,e:'よそよそしいとは、親しみがなく他人行儀な様子、よそよそしい態度を意味します。'},
+  {id:873,cat:'語彙',q:'「そびえる」の意味として正しいものは？',cs:['高くそびえ立つ','低く広がる','地面に沈み込む','横に広がっている'],a:0,e:'そびえるとは、山や建物などが非常に高くそびえ立っている様子を意味します。'},
+  {id:874,cat:'語彙',q:'「ことごとく」の意味として正しいものは？',cs:['全部・すべて','部分的に一部だけ','ほとんどだいたい','ときどき間違えながら'],a:0,e:'ことごとくとは、残らず全部、例外なくという意味の副詞です。'},
+  {id:875,cat:'語彙',q:'「のびのびと」の意味として正しいものは？',cs:['のびのびと自由に伸び伸びした様子','窮屈で息苦しい様子','制限が多くて不自由な様子','プレッシャーで縮こまる様子'],a:0,e:'伸び伸びとは、制限なく自由にのびやかな様子を意味します。'},
+  {id:876,cat:'語彙',q:'「いびつ」の意味として正しいものは？',cs:['形がゆがんでいる様子','整った美しい形','完全にきれいな形','均整がとれた状態'],a:0,e:'歪とは、形がゆがんでいる様子、または物事のバランスが崩れている様子を意味します。'},
+  {id:877,cat:'語彙',q:'「うやうやしい」の意味として正しいものは？',cs:['非常に礼儀正しく丁寧な様子','馴れ馴れしく失礼な様子','横柄で無礼な様子','ぶしつけで図々しい様子'],a:0,e:'恭しいとは、非常に礼儀正しく、相手を敬って丁寧にふるまう様子を意味します。'},
+  {id:878,cat:'語彙',q:'「とりなす」の意味として正しいものは？',cs:['対立する間を調整してうまくまとめる','争いを激しくさせる','どちらか一方の肩を持つ','問題をさらに複雑にする'],a:0,e:'取り成すとは、対立する人々の間に入って調整し、うまく取りまとめることを意味します。'},
+  {id:879,cat:'語彙',q:'「ひょうひょうとして」の意味として正しいものは？',cs:['何にも縛られず飄々とした様子','固くしっかりとした様子','細かいことにこだわる様子','規則に厳しく従う様子'],a:0,e:'飄々としてとは、こだわりなく何にも縛られず、のびのびとした様子を意味します。'},
+  {id:880,cat:'語彙',q:'「へりくだる」の意味として正しいものは？',cs:['自分をへりくだって低く見せる','威張って自分を上に見せる','自慢して相手に自分を誇示する','強引に主張して押し通す'],a:0,e:'謙ると（へりくだる）は、自分を相手より低く見せて礼儀を示す、謙遜することを意味します。'},
+
+  // ── 文法 881-1000 ──
+  {id:881,cat:'文法',q:'「彼は毎朝、学校へ行く」の「へ」と同じ使い方の「へ」はどれ？',cs:['公園へ向かって走る','あなたへの手紙','成功への道','故郷への思い'],a:0,e:'方向を表す助詞「へ」の基本用法は「〜に向かって」という意味で使います。「公園へ向かって走る」は方向を表す典型例です。'},
+  {id:882,cat:'文法',q:'「私は走った」を「走らなかった」に変えると何が変わる？',cs:['否定になる','過去から現在になる','動詞が変わる','意味が全く違う文になる'],a:0,e:'「走らなかった」は「走った」の否定形で、過去の否定を表します。動詞の否定形は文の意味を否定に変えます。'},
+  {id:883,cat:'文法',q:'「美しい花が咲いた」で「美しい」は何の働きをしている？',cs:['花を修飾する連体修飾語','文全体を修飾している','述語の働きをしている','花の状態を表す述語'],a:0,e:'「美しい」は名詞「花」を修飾する連体修飾語です。名詞を修飾する形容詞の用法を連体形といいます。'},
+  {id:884,cat:'文法',q:'「はやく走れ」の「はやく」は何の品詞？',cs:['形容詞が活用した副詞的用法','副詞','動詞を修飾する連用修飾語','形容詞の連用形'],a:3,e:'「はやく」は形容詞「はやい」の連用形で、動詞「走れ」を修飾しています。'},
+  {id:885,cat:'文法',q:'次のうち動詞はどれ？',cs:['泳ぐ','きれいだ','静かな','もの'],a:0,e:'「泳ぐ」は動作を表す動詞です。「きれいだ」は形容動詞、「静かな」は形容動詞の連体形、「もの」は名詞です。'},
+  {id:886,cat:'文法',q:'「山が高い」の「高い」は何形容詞？',cs:['イ形容詞（形容詞）','ナ形容詞（形容動詞）','副詞','動詞'],a:0,e:'「高い」は「い」で終わる形容詞（イ形容詞）です。「高い、高く、高かった」のように活用します。'},
+  {id:887,cat:'文法',q:'「彼は親切だ」の「親切だ」は何品詞？',cs:['形容動詞','形容詞','名詞','動詞'],a:0,e:'「親切だ」は形容動詞（ナ形容詞）です。「親切な人」「親切に接する」のように活用します。'},
+  {id:888,cat:'文法',q:'「太郎が花子に本を貸した」の主語は？',cs:['太郎','花子','本','貸した'],a:0,e:'主語は動作の主体で、「〜が」で示されることが多いです。この文では「太郎が」が主語です。'},
+  {id:889,cat:'文法',q:'「ゆっくりと話す」の「ゆっくりと」は何の働きをしている？',cs:['動詞「話す」を修飾する修飾語','形容詞として使われている','述語の一部','主語を修飾している'],a:0,e:'「ゆっくりと」は副詞で、動詞「話す」を修飾する連用修飾語の働きをしています。'},
+  {id:890,cat:'文法',q:'「犬が吠えた。しかし猫は逃げなかった。」の「しかし」は何品詞？',cs:['接続詞','副詞','助詞','助動詞'],a:0,e:'「しかし」は文と文をつなぐ接続詞で、逆接の関係を表します。'},
+  {id:891,cat:'文法',q:'「読む・読まない」の「ない」は何品詞？',cs:['助動詞','形容詞','動詞の一部','副詞'],a:0,e:'「読まない」の「ない」は否定の助動詞です。動詞の未然形（読ま-）に接続します。'},
+  {id:892,cat:'文法',q:'「あの大きな赤い花」で正しい修飾の順番は？',cs:['連体詞→形容詞→名詞','形容詞→連体詞→名詞','名詞→形容詞→連体詞','連体詞→名詞→形容詞'],a:0,e:'「あの（連体詞）・大きな（形容動詞）・赤い（形容詞）・花（名詞）」の順で、名詞を修飾する言葉が名詞の前に並びます。'},
+  {id:893,cat:'文法',q:'「水が冷たかった」の「た」は何を表す助動詞？',cs:['過去','完了','確認','推量'],a:0,e:'「た」は過去を表す助動詞です。動詞・形容詞の連用形に付いて過去の事実を表します。'},
+  {id:894,cat:'文法',q:'「彼女は歌手だ」の「だ」は何品詞？',cs:['助動詞（断定）','動詞','形容詞','接続詞'],a:0,e:'「だ」は断定を表す助動詞です。名詞や形容動詞の語幹に付いて断定の意味を表します。'},
+  {id:895,cat:'文法',q:'次の文の主語と述語の組み合わせが正しいものは？「春になると桜が咲く。」',cs:['桜が－咲く','春が－咲く','桜が－なる','春が－なる'],a:0,e:'主語は「桜が」、述語は「咲く」です。「春になると」は時間を表す修飾語（接続的な表現）です。'},
+  {id:896,cat:'文法',q:'「本を読みながら食べる」の「ながら」は何を表す？',cs:['二つの動作が同時に行われること','対比','逆接','原因・理由'],a:0,e:'「ながら」は二つの動作が同時に行われることを表す接続助詞です。'},
+  {id:897,cat:'文法',q:'「もっと速く走れば良かった」の「ば」は何を表す？',cs:['仮定条件','確定条件','逆接','原因'],a:0,e:'「〜ば」は仮定条件を表す接続助詞です。「もし〜したら」という意味を表します。'},
+  {id:898,cat:'文法',q:'「彼は勉強するので成績が良い」の「ので」は何を表す？',cs:['原因・理由','逆接','条件','付け加え'],a:0,e:'「ので」は原因・理由を表す接続助詞です。「〜だから」という意味を表し、客観的な理由を示します。'},
+  {id:899,cat:'文法',q:'「走る」の命令形はどれ？',cs:['走れ','走ろう','走れば','走るな'],a:0,e:'「走れ」は動詞「走る」の命令形です。命令形は相手に強く命令するときに使います。'},
+  {id:900,cat:'文法',q:'「雨が降っている」の「て」は何を表す助詞？',cs:['動作の継続（テ形）を作る','理由','手段','原因'],a:0,e:'「降っている」の「て」はテ形接続で、「〜している」という継続・進行の意味を作ります。'},
+  {id:901,cat:'文法',q:'「きれいな花」の「な」は何の役割？',cs:['形容動詞の連体形を作る','名詞を強調する','接続詞の働き','感動詞'],a:0,e:'形容動詞（ナ形容詞）は名詞を修飾するとき「〜な」の形（連体形）になります。「きれいな」はその例です。'},
+  {id:902,cat:'文法',q:'「あ、雨だ！」の「あ」は何品詞？',cs:['感動詞','副詞','接続詞','助詞'],a:0,e:'「あ」は感動・驚きを表す感動詞（感嘆詞）です。文法的に独立して使われます。'},
+  {id:903,cat:'文法',q:'「彼と私は友達だ」の「と」は何を表す？',cs:['並列（〜と〜）','手段','理由','比較'],a:0,e:'「彼と私は」の「と」は並列を表す格助詞で、「〜と〜」の形で二つのものを並べます。'},
+  {id:904,cat:'文法',q:'「本が三冊ある」の「三冊」は何品詞？',cs:['数詞','名詞','副詞','形容詞'],a:0,e:'「三冊」は数を表す数詞です。数詞は数量を表す独立した品詞です。'},
+  {id:905,cat:'文法',q:'「彼女はとても親切だ」の「とても」は何品詞？',cs:['副詞','形容詞','助詞','接続詞'],a:0,e:'「とても」は程度を表す副詞で、形容動詞「親切だ」を修飾しています。'},
+  {id:906,cat:'文法',q:'「雨が降りそうだ」の「そうだ」は何を表す助動詞？',cs:['様態（〜しそうだ）','伝聞（〜そうだ）','推量','断定'],a:0,e:'動詞の連用形に付く「そうだ」は様態を表し、「今にも〜しそうだ」という意味を表します。伝聞の「そうだ」は終止形に付きます。'},
+  {id:907,cat:'文法',q:'「話す」の受け身形はどれ？',cs:['話される','話させる','話せる','話そう'],a:0,e:'受け身（受動態）は「〜れる・〜られる」を付けて作ります。「話す」の受け身は「話される」です。'},
+  {id:908,cat:'文法',q:'「食べ（させ）られる」は何を表す？',cs:['強制的にさせられること（使役受け身）','自分でする','できる','してあげる'],a:0,e:'「させられる」は使役（させる）に受け身（られる）が組み合わさった使役受け身形で、無理やりさせられることを表します。'},
+  {id:909,cat:'文法',q:'「机の上に本がある」と「私は本がある」の文法的な違いは？',cs:['「ある」の主語が「本」か「私」かの違い','意味が全く同じ','どちらも同じ構造','助詞の「に」と「は」の違いだけ'],a:0,e:'「机の上に本がある」では「本」が存在の主体（主語相当）で、「私は本がある」では「私は」が主語で「本が」は所有の目的語に相当します。'},
+  {id:910,cat:'文法',q:'「まだ宿題をしていない」の「まだ」は何を表す副詞？',cs:['否定と共に使って動作が完了していないことを表す','時間','継続中','これから行う'],a:0,e:'「まだ〜ていない」は、動作が現在に至るまで完了していないことを表す表現です。'},
+  {id:911,cat:'文法',q:'「先生が本を読んでくださった」の「くださった」はどんな表現？',cs:['尊敬語（相手が自分に何かをしてくれた）','謙譲語','丁寧語','普通の過去形'],a:0,e:'「くださった」は「くださる」の過去形で、目上の人が自分（または自分側）に何かをしてくれたことを表す尊敬語の補助動詞です。'},
+  {id:912,cat:'文法',q:'「私は先生に本を差し上げた」の「差し上げた」はどんな表現？',cs:['謙譲語（自分が目上の人に何かをする）','尊敬語','丁寧語','普通の動詞'],a:0,e:'「差し上げる」は謙譲語で、自分が目上の人に何かをする動作をへりくだって表現します。'},
+  {id:913,cat:'文法',q:'「山の頂上からの眺めが素晴らしかった。」の述語は？',cs:['素晴らしかった','眺めが','山の','頂上から'],a:0,e:'述語は文の中心となる動詞・形容詞・形容動詞で、主語（何が）に対応します。この文では「素晴らしかった」が述語です。'},
+  {id:914,cat:'文法',q:'「走る」「食べる」「する」のうち、カ行変格活用の動詞はどれ？',cs:['どれでもない（カ変は「来る」）','走る','食べる','する'],a:0,e:'カ行変格活用（カ変）は「来る（くる）」のみです。「する」はサ行変格活用（サ変）です。'},
+  {id:915,cat:'文法',q:'「読む」を丁寧な文にすると？',cs:['読みます','読まれます','読ませます','読まれている'],a:0,e:'「読みます」は「読む」に丁寧の助動詞「ます」を付けた丁寧語です。'},
+  {id:916,cat:'文法',q:'「彼女はとても歌が上手だ」の文節を正しく区切ったものはどれ？',cs:['彼女は／とても／歌が／上手だ','彼女は／とても歌が／上手だ','彼女はとても／歌が上手だ','彼女は／とても歌が上手だ'],a:0,e:'文節は「ネ」を入れて意味が通じる単位で区切ります。「彼女はネ／とてもネ／歌がネ／上手だ」と区切れます。'},
+  {id:917,cat:'文法',q:'「〜ように」が目的を表している文はどれ？',cs:['字が上手になるように練習した','雨が降るように祈った','見えるように台に乗った','失敗しないように注意した'],a:0,e:'「字が上手になるように練習した」の「ように」は目的（〜するために）を表します。他の文も似ていますが最も典型的な目的用法はこれです。'},
+  {id:918,cat:'文法',q:'「彼は医者らしい」の「らしい」は何を表す？',cs:['推量・推定','断定','様態','伝聞'],a:0,e:'「らしい」は根拠に基づく推量・推定を表す助動詞です。「医者らしい」は「医者だと思われる」という推定を表します。'},
+  {id:919,cat:'文法',q:'「もし雨が降ったら、中止します」の「たら」は何を表す？',cs:['仮定条件','並列','理由','逆接'],a:0,e:'「たら」は仮定条件を表す接続助詞で、「もし〜なら」という意味を表します。'},
+  {id:920,cat:'文法',q:'「彼は走るだろう」の「だろう」は何を表す？',cs:['推量','断定','命令','仮定'],a:0,e:'「だろう」は「だ」の推量形で、話し手の推量・推定を表します。'},
+  {id:921,cat:'文法',q:'「田中さんにお電話差し上げます」の「お〜差し上げます」は何語？',cs:['謙譲語（自分の行動をへりくだって表現）','尊敬語','丁寧語','美化語'],a:0,e:'「お〜差し上げます」は自分の動作を謙遜して表す謙譲語の表現です。'},
+  {id:922,cat:'文法',q:'「花が咲いた」と「花を咲かせた」の意味の違いは？',cs:['自動詞文と他動詞文の違い','時制の違い','否定と肯定の違い','主語の違い'],a:0,e:'「咲いた」は自動詞（主語が自然に動作する）、「咲かせた」は他動詞（主語が意図的に動作を引き起こす）の文です。'},
+  {id:923,cat:'文法',q:'「彼は来ないかもしれない」の「かもしれない」は何を表す？',cs:['不確かな推量','否定の意志','確定','命令'],a:0,e:'「かもしれない」は確かではないが、ひょっとしたらそうかもしれないという不確かな推量を表します。'},
+  {id:924,cat:'文法',q:'「バスに乗って学校へ行く」の「に」（バスに）は何を表す？',cs:['手段・道具（〜を使って）','場所','方向','時間'],a:0,e:'「バスに乗る」の「に」は交通手段を表す格助詞で、「乗る」という動詞と結びついて手段を表します。'},
+  {id:925,cat:'文法',q:'「彼女は医者になった」の「に」は何を表す？',cs:['変化の結果（〜になる）','場所','手段','時間'],a:0,e:'「なる」と結びつく「に」は変化の結果を表す格助詞で、「〜という状態に変わった」という意味を表します。'},
+  {id:926,cat:'文法',q:'次の文のうち、敬語の使い方が正しいものはどれ？',cs:['先生がいらっしゃいます','先生がおります','先生がいます','先生がまいります'],a:0,e:'「いらっしゃる」は「いる」の尊敬語で、目上の人に使います。「おる」「まいる」は謙譲語で自分の行動に使います。'},
+  {id:927,cat:'文法',q:'「彼は本を読んでいる」はどのような状況を表す？',cs:['現在進行中の動作','過去の習慣','未来の予定','反復する動作'],a:0,e:'「〜ている」は動作の進行や継続を表します。「今まさに読んでいる（進行形）」の意味です。'},
+  {id:928,cat:'文法',q:'「私は毎日走っている」の「〜ている」はどんな意味？',cs:['習慣的な行為','現在進行中','完了した状態','過去の動作'],a:0,e:'「毎日走っている」の「〜ている」は習慣的・反復的な行為を表します。（進行中の意味ではなく習慣の意味）'},
+  {id:929,cat:'文法',q:'「財布を失くしてしまった」の「てしまう」は何を表す？',cs:['完了（しかも残念・不本意な気持ちを含む）','単純な完了','意図的な行動','継続'],a:0,e:'「〜てしまう」は動作の完了を表しますが、特に残念な気持ちや後悔・不本意なニュアンスを含む場合が多いです。'},
+  {id:930,cat:'文法',q:'「ドアが開けてある」の「てある」は何を表す？',cs:['意図的にした行為の結果が現在も残っている','進行中','完了','受け身'],a:0,e:'「〜てある」は誰かが意図的に行った動作の結果状態が現在も続いていることを表します。（ドアを誰かが開けて、今も開いている）'},
+  {id:931,cat:'文法',q:'「〜ておく」はどんな意味を表す？',cs:['将来のために準備・維持する','今すぐ行う','完了させる','しておく義務がある'],a:0,e:'「〜ておく」は将来のために準備したり、ある状態を維持したりすることを表します。'},
+  {id:932,cat:'文法',q:'「彼に手伝ってもらった」の「もらう」は何を表す？',cs:['受け手（自分）が恩恵を受けること','相手がする','贈り物をもらう','お願いする'],a:0,e:'「〜てもらう」は、相手に何かをしてもらうことで自分が恩恵を受けることを表す補助動詞表現です。'},
+  {id:933,cat:'文法',q:'「弟に宿題をさせた」の「させた」は何を表す？',cs:['使役（他の人に何かをさせる）','受け身','可能','尊敬'],a:0,e:'「させる」は使役の助動詞で、他者に動作をさせることを表します。'},
+  {id:934,cat:'文法',q:'「この映画を見たことがある」の「たことがある」は何を表す？',cs:['過去の経験','現在の状態','習慣','完了'],a:0,e:'「〜たことがある」は過去の経験を表す表現で、「かつてそうしたことがある」という意味です。'},
+  {id:935,cat:'文法',q:'「もっと早く来ればよかった」は何を表す？',cs:['後悔（実際にはそうしなかった）','願望','推量','提案'],a:0,e:'「〜ばよかった」は、実際にはそうしなかった（できなかった）ことへの後悔を表す表現です。'},
+  {id:936,cat:'文法',q:'「春になれば花が咲く」の「れば」は何を表す？',cs:['仮定・条件','逆接','並列','理由'],a:0,e:'「〜れば（〜ば）」は仮定条件を表す接続助詞で、「もし〜なら〜だ」という意味です。'},
+  {id:937,cat:'文法',q:'「彼は親切で、頭も良い」の「で」は何を表す？',cs:['並列（〜で〜）','理由','手段','逆接'],a:0,e:'形容動詞・名詞の「で」は前後の文節や文を並列でつなぐ働きがあります。'},
+  {id:938,cat:'文法',q:'「彼女が歌っているのを聞いた」の「の」は何？',cs:['準体助詞（名詞節を作る）','格助詞','接続助詞','助動詞'],a:0,e:'「歌っているの」の「の」は準体助詞で、動詞句を名詞句に変える働きをします。「〜ことを」と言い換えられます。'},
+  {id:939,cat:'文法',q:'「私が先に行きます」の「が」は何？',cs:['格助詞（主格）','逆接の接続助詞','強調の係助詞','並列'],a:0,e:'「私が」の「が」は主格を表す格助詞で、「私が（行為の主体）」であることを示します。'},
+  {id:940,cat:'文法',q:'「本も読んだし、映画も見た」の「も〜し」は何を表す？',cs:['並列・列挙（〜もするし、〜もする）','逆接','条件','理由'],a:0,e:'「〜し、〜し」は並列・列挙を表す接続助詞で、「〜もするし、〜もする」という意味です。'},
+  {id:941,cat:'文法',q:'「彼は医者のようだ」の「ようだ」は何を表す？',cs:['比喩・推量','断定','伝聞','様態'],a:0,e:'「〜のようだ」は比喩や比較による推量を表す助動詞で、見た目や様子から類推する意味を表します。'},
+  {id:942,cat:'文法',q:'次の文で敬語が誤っているのはどれ？',cs:['先生が申しました','先生がおっしゃいました','先生がいらっしゃいます','先生がお見えになりました'],a:0,e:'「申す」は謙譲語で自分の言動に使います。先生の言動には尊敬語「おっしゃる」を使わなければなりません。'},
+  {id:943,cat:'文法',q:'「彼と一緒にいるのはいつも楽しい」の主語は？',cs:['彼と一緒にいるの（準体節）','彼','私','楽しい'],a:0,e:'「のは」は「〜ことは」と同じく名詞節（準体節）を作ります。「〜のは楽しい」では「〜のが」が主語になります。'},
+  {id:944,cat:'文法',q:'「たとえ雨が降っても試合をする」の「ても」は何を表す？',cs:['逆接の仮定（たとえ〜でも）','理由','条件','並列'],a:0,e:'「たとえ〜ても」は「仮にそうだとしても、それに関係なく」という逆接の仮定を表します。'},
+  {id:945,cat:'文法',q:'「先生がいらっしゃった」の「いらっしゃる」は何語？',cs:['尊敬語（いるの尊敬）','謙譲語','丁寧語','美化語'],a:0,e:'「いらっしゃる」は「いる・来る・行く」の尊敬語で、目上の人の行動に使います。'},
+  {id:946,cat:'文法',q:'「この本はとても面白い」の「とても」を「あまり」に変えた場合、文をどう変える必要がある？',cs:['否定形にする（あまり面白くない）','何も変えなくてよい','語順を変える','述語を過去形にする'],a:0,e:'「あまり」は否定文と共に使います。「あまり面白くない」のように否定形と組み合わせます。'},
+  {id:947,cat:'文法',q:'「彼は自転車で来た」の「で」は何を表す？',cs:['手段','場所','理由','時間'],a:0,e:'「自転車で」の「で」は手段・方法を表す格助詞です。「〜を使って」という意味です。'},
+  {id:948,cat:'文法',q:'「公園で遊んだ」の「で」は何を表す？',cs:['場所（動作の行われる場所）','手段','理由','方向'],a:0,e:'「公園で」の「で」は動作が行われる場所を表す格助詞です。'},
+  {id:949,cat:'文法',q:'「私は彼女を愛している」の「を」は何？',cs:['格助詞（目的格）','主格','方向','通過する場所'],a:0,e:'「彼女を」の「を」は動詞の目的語（目的格）を表す格助詞です。'},
+  {id:950,cat:'文法',q:'「橋を渡る」の「を」は何を表す？',cs:['移動の経路','目的格','場所','方向'],a:0,e:'「橋を渡る」の「を」は移動の経路を表す格助詞で、「〜を通って」という意味です。目的格の「を」とは異なります。'},
+  {id:951,cat:'文法',q:'「電車で東京から来た」の「から」は何を表す？',cs:['起点（どこから来たか）','理由・原因','素材','時間'],a:0,e:'「東京から」の「から」は移動の起点（出発地）を表す格助詞です。'},
+  {id:952,cat:'文法',q:'「疲れたから休む」の「から」は何を表す？',cs:['理由・原因','起点','手段','逆接'],a:0,e:'動詞・形容詞の後に付く「から」は理由・原因を表す接続助詞で、「〜なので」という意味です。'},
+  {id:953,cat:'文法',q:'「彼は三時まで働いた」の「まで」は何を表す？',cs:['限界・終点（どこまで）','起点','程度','範囲'],a:0,e:'「三時まで」の「まで」は時間や空間の限界・終点を表す格助詞です。'},
+  {id:954,cat:'文法',q:'「そんな人まで来るとは思わなかった」の「まで」は何を表す？',cs:['意外性の強調（〜でさえ）','限界','並列','程度'],a:0,e:'この「まで」は意外なことを強調する係助詞的用法で、「そんな人でさえ」「意外にも」という意味を表します。'},
+  {id:955,cat:'文法',q:'「勉強しながら音楽を聞く」の「ながら」は？',cs:['同時進行（二つの動作を同時にする）','逆接','並列','条件'],a:0,e:'「〜ながら」は二つの動作を同時に行うことを表す接続助詞です。'},
+  {id:956,cat:'文法',q:'「大人でありながら子供のようだ」の「ながら」は？',cs:['逆接（〜なのに）','同時進行','並列','条件'],a:0,e:'形容動詞・名詞に付く「ながら」は逆接を表し、「〜なのに」「〜にもかかわらず」という意味です。'},
+  {id:957,cat:'文法',q:'「先生に褒められた」の「に」は何を表す？',cs:['受け身の動作主','場所','時間','手段'],a:0,e:'受け身文で使われる「に」は動作の実行者（動作主）を表す格助詞です。'},
+  {id:958,cat:'文法',q:'「彼は試験に合格した」の「に」は何を表す？',cs:['対象（〜に対して）','場所','時間','手段'],a:0,e:'「試験に合格する」の「に」は動作の対象（帰着点）を表す格助詞です。'},
+  {id:959,cat:'文法',q:'「この映画は面白くない」の「くない」は何品詞の活用形？',cs:['形容詞の否定形（形容詞＋ない）','形容動詞','助動詞','副詞'],a:0,e:'「面白くない」は形容詞「面白い」の連用形「面白く」に否定の助動詞「ない」が付いた形です。'},
+  {id:960,cat:'文法',q:'「彼女は親切ではない」の「ではない」は何を否定している？',cs:['形容動詞の述語「親切だ」','名詞','形容詞','動詞'],a:0,e:'「親切ではない」は形容動詞「親切だ」の否定形で、「〜では（連用形）＋ない（助動詞）」の構造です。'},
+  {id:961,cat:'文法',q:'「しかし」と同じ意味・用法の接続詞はどれ？',cs:['だが','だから','そして','さらに'],a:0,e:'「しかし」は逆接の接続詞で、「だが・けれども・ところが」などと同じ意味です。「だから」は順接、「そして」「さらに」は累加を表します。'},
+  {id:962,cat:'文法',q:'「体調が悪いので、今日は休みます」の「ので」と「から」の違いは？',cs:['「ので」は客観的理由、「から」は主観的理由を表す傾向がある','意味は全く同じ','「ので」は文末のみに使う','「から」のほうが丁寧'],a:0,e:'「ので」は比較的客観的・事実的な理由、「から」は話し手の主観的な判断に基づく理由を表す傾向があります。'},
+  {id:963,cat:'文法',q:'「彼が来ると、みんなが喜ぶ」の「と」は何を表す？',cs:['確定条件（〜すると必ず）','仮定','並列','手段'],a:0,e:'「〜と」は確定条件（〜すると必ず〜だ）を表す接続助詞で、自然の法則や習慣的事実に使います。'},
+  {id:964,cat:'文法',q:'「五段活用の動詞」の特徴は？',cs:['語尾がア〜オの五段に活用する','語尾が「る」で終わる','語幹が変わらない','全て二音節'],a:0,e:'五段活用（旧：四段活用）は語尾がア・イ・ウ・エ・オ段に変化します。例：「書く→書か（ない）・書き（ます）・書く・書け（ば）・書こ（う）」'},
+  {id:965,cat:'文法',q:'「食べる」は何活用の動詞？',cs:['上一段活用','五段活用','カ行変格活用','サ行変格活用'],a:0,e:'「食べる」は一段活用（下一段活用）の動詞で、語幹「食べ」に語尾「る」がつく形です。'},
+  {id:966,cat:'文法',q:'「書かない」の「書か」は何形？',cs:['未然形','連用形','終止形','仮定形'],a:0,e:'「書かない」の「書か」は未然形です。未然形は否定（〜ない）・使役（〜せる）・受け身（〜れる）などが接続します。'},
+  {id:967,cat:'文法',q:'「書いて」の「書い」は何形？',cs:['連用形（音便形）','未然形','終止形','連体形'],a:0,e:'「書いて」の「書い」は連用形の音便形（イ音便）です。五段動詞「書く」の連用形「書き」が音便変化したものです。'},
+  {id:968,cat:'文法',q:'「花が咲けば」の「咲け」は何形？',cs:['仮定形','命令形','連体形','終止形'],a:0,e:'「〜ば」は仮定形に接続します。「咲けば」の「咲け」は「咲く」の仮定形です。'},
+  {id:969,cat:'文法',q:'「彼は来ないはずだ」の「はずだ」は何を表す？',cs:['論理的な根拠に基づく推量','単純な推量','希望','断定'],a:0,e:'「〜はずだ」は、ある事実や状況から論理的に導かれる推量・予測を表します。'},
+  {id:970,cat:'文法',q:'「この問題は難しすぎる」の「すぎる」は何を表す？',cs:['程度が過剰（〜しすぎる）','比較','完了','否定'],a:0,e:'「〜すぎる」は程度が適切な範囲を超えていることを表す表現で、「程度が過剰だ」という意味です。'},
+  {id:971,cat:'文法',q:'「雨が降り始めた」の「始める」は何を表す？',cs:['動作の開始（始まり）','完了','継続','繰り返し'],a:0,e:'補助動詞「始める」は動作の開始を表し、「〜し始める」で「〜するようになった最初の段階」を意味します。'},
+  {id:972,cat:'文法',q:'「もうすぐ卒業できる」の「できる」は何を表す？',cs:['可能（〜することができる）','完了','意志','推量'],a:0,e:'「できる」は可能を表す補助動詞で、「〜することが可能だ」という意味を表します。'},
+  {id:973,cat:'文法',q:'「彼は来るかどうかわからない」の「かどうか」は何を表す？',cs:['不確かな疑問（〜するかしないか）','選択','条件','強調'],a:0,e:'「〜かどうか」は「〜するかしないか（どちらなのか）」という不確かな疑問や選択の意味を表します。'},
+  {id:974,cat:'文法',q:'「先生でさえできない」の「さえ」は何を表す？',cs:['極端な例の強調（〜でさえ）','並列','逆接','条件'],a:0,e:'「さえ」は「〜でさえ（〜でも）」という極端な例を挙げて強調する係助詞です。'},
+  {id:975,cat:'文法',q:'「彼が来てはじめて問題がわかった」の「てはじめて」は何を表す？',cs:['あることが起きて初めて別のことがわかる','順序','条件','理由'],a:0,e:'「〜てはじめて」は「〜することによって初めて（ようやく）〜がわかった・できた」という意味を表します。'},
+  {id:976,cat:'文法',q:'「行くにしても行かないにしても」の「にしても」は何を表す？',cs:['どちらの場合であっても（選択の逆接）','仮定','条件','並列'],a:0,e:'「〜にしても〜にしても」はいずれの場合においても（どちらであっても）という意味を表します。'},
+  {id:977,cat:'文法',q:'「彼女ほど親切な人はいない」の「ほど」は何を表す？',cs:['程度の基準（〜くらい親切な人はいない）','比較の対象','限界','範囲'],a:0,e:'「〜ほど」は程度の基準を表し、「〜ほど〜ない」は「〜より〜なものはない（最上）」という意味になります。'},
+  {id:978,cat:'文法',q:'「彼女は歌えば歌うほど上手になる」の表現は何を表す？',cs:['比例（〜すればするほど〜）','仮定','条件','繰り返し'],a:0,e:'「〜ば〜ほど」は比例の関係を表し、「一方が増えると他方も増える（減る）」という意味です。'},
+  {id:979,cat:'文法',q:'「日本語はむずかしいというわけではない」の「というわけではない」は何を表す？',cs:['部分否定（完全にはそうとは言えない）','全否定','肯定','推量'],a:0,e:'「〜というわけではない」は「必ずしも〜ではない」という部分否定の表現で、完全な否定ではなく「そういう側面もあるが全てではない」という意味です。'},
+  {id:980,cat:'文法',q:'「練習したおかげで上達した」の「おかげで」は何を表す？',cs:['恩恵的原因（良いことの理由）','単なる理由','逆接','条件'],a:0,e:'「〜おかげで」は良い結果をもたらした恩恵的な原因・理由を表します。悪い結果には「せいで」を使います。'},
+  {id:981,cat:'文法',q:'「試験に落ちたせいで落ち込んでいる」の「せいで」は何を表す？',cs:['マイナスの原因（悪い結果の理由）','単なる理由','恩恵的原因','条件'],a:0,e:'「〜せいで」は悪い結果をもたらした原因・理由を表し、責任や非難のニュアンスがあります。'},
+  {id:982,cat:'文法',q:'「彼女はさすが先生だ」の「さすが」は何を表す？',cs:['期待通りの評価（やっぱり〜だけのことはある）','強調','驚き','逆接'],a:0,e:'「さすが」は評判や地位などにふさわしいと認める気持ちを表す副詞・感動詞で、「期待通り・やっぱりさすがだ」という意味です。'},
+  {id:983,cat:'文法',q:'「せっかく来たのに会えなかった」の「せっかく」は何を表す？',cs:['苦労や努力が報われなかった残念さ','強調','条件','仮定'],a:0,e:'「せっかく」は苦労して行ったのに（期待が外れて残念）というニュアンスを表す副詞です。'},
+  {id:984,cat:'文法',q:'「やはり彼が一番だ」の「やはり」は何を表す？',cs:['予想通り・期待通りの結果','強調','逆接','条件'],a:0,e:'「やはり（やっぱり）」は予想や期待した通りの結果であることを表す副詞です。'},
+  {id:985,cat:'文法',q:'「雨だから、外出しない」の「から」と「雨なので、外出しない」の「ので」の最大の違いは？',cs:['「から」は主観的理由、「ので」は客観的・事実的理由','意味は同じ','「から」は口語、「ので」は文語','使える場面が全く違う'],a:0,e:'「から」は話し手の主観的判断による理由、「ので」は客観的事実としての理由を述べる傾向があります。'},
+  {id:986,cat:'文法',q:'「彼に会いに行く」の「に」は何を表す？',cs:['目的（〜するために）','場所','動作主','方向'],a:0,e:'「会いに行く」の「に」は目的（〜するために）を表す格助詞で、動詞の連用形に接続します。'},
+  {id:987,cat:'文法',q:'「どうやら彼は知っているようだ」の「ようだ」は何を表す？',cs:['根拠に基づく推量（様態）','断定','比喩','伝聞'],a:0,e:'動詞に「ようだ」が付いた場合、見た目や様子から判断した推量（〜と思われる）を表します。'},
+  {id:988,cat:'文法',q:'「友達と話すと楽しい」の「と」は何を表す？',cs:['共同動作の相手（〜と一緒に）','引用','条件','比較'],a:0,e:'「友達と話す」の「と」は動作を共に行う相手を表す格助詞で、「〜と一緒に」という意味です。'},
+  {id:989,cat:'文法',q:'「もっと丁寧に書くべきだ」の「べきだ」は何を表す？',cs:['義務・当然（〜しなければならない）','可能','推量','願望'],a:0,e:'「〜べきだ」は義務や当然のことを表し、「〜するのが当然だ・〜するのが正しい」という意味です。'},
+  {id:990,cat:'文法',q:'「彼女が来てこそ意味がある」の「こそ」は何を表す？',cs:['強調（〜が重要だ）','条件','原因','逆接'],a:0,e:'「こそ」は強調の係助詞で、「〜が特に重要だ・〜こそが大切だ」という意味を表します。'},
+  {id:991,cat:'文法',q:'「どんなに努力しても無理だ」の「どんなに〜ても」は何を表す？',cs:['逆接の強調（どれほど〜してもやはり）','程度','条件','仮定'],a:0,e:'「どんなに〜ても」は「いかに〜しようとも（それでも）」という逆接の強調表現です。'},
+  {id:992,cat:'文法',q:'「わざわざ来てくれてありがとう」の「わざわざ」は何を表す？',cs:['特別に手間をかけて（〜してくれた）','強調','感謝','逆接'],a:0,e:'「わざわざ」は特別に手間や努力をかけて何かをすることを表す副詞です。感謝や申し訳なさを伴う場合が多いです。'},
+  {id:993,cat:'文法',q:'「まるで夢のようだ」の「まるで」は何を表す？',cs:['比喩を強調する（〜のようだという意味を強める）','断定','推量','完全否定'],a:0,e:'「まるで〜のようだ」は比喩表現を強調する副詞で、実際にはそうでないが非常に似ているという意味です。'},
+  {id:994,cat:'文法',q:'「確かに問題はあるが、解決できる」の「確かに〜が」は何を表す？',cs:['譲歩（一方を認めた上で反論）','並列','理由','逆接'],a:0,e:'「確かに〜が（けれど）」は相手の言う一方の事実を認めた上で別の意見を述べる譲歩の表現です。'},
+  {id:995,cat:'文法',q:'「何もないよりましだ」の「より」は何を表す？',cs:['比較の基準（〜と比べると）','選択','理由','手段'],a:0,e:'「〜よりまし」の「より」は比較の基準を表す格助詞で、「〜と比べると」という意味です。'},
+  {id:996,cat:'文法',q:'「あいにく本日は外出しております」の「あいにく」は何を表す？',cs:['状況が都合悪い（残念ながら）','謙遜','断定','丁寧'],a:0,e:'「あいにく」は状況が相手の期待に沿えず都合が悪いことを表す副詞で、「残念ながら・折悪しく」という意味です。'},
+  {id:997,cat:'文法',q:'「たとえ失敗しても諦めない」の「たとえ〜ても」は何を表す？',cs:['仮定逆接（仮にそうなったとしても）','条件','理由','原因'],a:0,e:'「たとえ〜ても」は「仮にそうであっても（それでも）」という仮定逆接の表現で、強い意志を表す場合に多く使います。'},
+  {id:998,cat:'文法',q:'「彼女はどこへ行っても人気者だ」の「どこへ行っても」は何を表す？',cs:['場所を問わない普遍性（どこでも）','場所の限定','条件','比較'],a:0,e:'「どこへ行っても」は「どこへ行っても（どこであっても）」という場所を問わない普遍的な事実を表します。'},
+  {id:999,cat:'文法',q:'「彼はなかなか話してくれない」の「なかなか」は何を表す？',cs:['期待に反してなかなか〜しない（否定と共に）','かなり（肯定と共に）','程度','強調'],a:0,e:'「なかなか〜ない」は「いつまでたっても〜しない・容易には〜しない」という意味で、否定と共に使います。肯定と共に使うと「なかなか（〜だ）＝かなり・相当」の意味になります。'},
+  {id:1000,cat:'文法',q:'「彼の話を聞いてはじめて事情がわかった」の意味は？',cs:['彼の話を聞くまではわからなかった','彼の話を聞いた後にわかった','彼の話を聞いたことがきっかけでわかった','初めて彼の話を聞いた'],a:2,e:'「〜てはじめて〜がわかった」は「〜をきっかけとして（それまでわからなかったことが）わかるようになった」という意味で、「きっかけ」と「結果」の関係を表します。'},
+];
+
+const CAT_CLASS = {'漢字の読み':'c1','漢字の書き':'c2','ことわざ':'c3','慣用句':'c4','語彙':'c5','文法':'c6'};
+
+// ═══════════════════════════════════════════
+// CREATURES (100)
+// ═══════════════════════════════════════════
+const CREATURES={
+  // TIER 1: EGG (lv1-2) — 10
+  e1:{e:'🥚',n:'たまご',d:'うまれたて。なかになにがいるのかな？',tier:1},
+  e2:{e:'🥚',n:'よわよわたまご',d:'...なんかひびが入ってきた',tier:1},
+  e3:{e:'✨🥚',n:'キラたまご',d:'なんかきらきらしている！',tier:1},
+  e4:{e:'🔥🥚',n:'ほのおたまご',d:'なかが熱い！コンボの力がみなぎる！',tier:1},
+  e5:{e:'❄️🥚',n:'こおりたまご',d:'つめたいけれど美しい...',tier:1},
+  e6:{e:'⚡🥚',n:'かみなりたまご',d:'ぱちぱちしている！',tier:1},
+  e7:{e:'🌸🥚',n:'さくらたまご',d:'やさしいいろのたまご',tier:1},
+  e8:{e:'🌑🥚',n:'やみのたまご',d:'くらい...でも何かが眠っている',tier:1},
+  e9:{e:'💎🥚',n:'ダイヤたまご',d:'すごくかたい！何が生まれるんだろう？',tier:1},
+  e10:{e:'🌈🥚',n:'にじたまご',d:'いろんないろがうずまいている！',tier:1},
+  // TIER 2: CHICK (lv3-4) — 15
+  c1:{e:'🐣',n:'ひよこ',d:'ぴよぴよ！元気に生まれたよ！',tier:2},
+  c2:{e:'📚🐣',n:'まじめひよこ',d:'勉強大好き！もっとやるよ！',tier:2},
+  c3:{e:'😤🐣',n:'やさぐれひよこ',d:'うるさい！俺の道を行く！',tier:2},
+  c4:{e:'⚡🐣',n:'いなずまひよこ',d:'はやい！コンボが止まらない！',tier:2},
+  c5:{e:'🔥🐣',n:'ほのおひよこ',d:'ファイヤー！熱くなってきた！',tier:2},
+  c6:{e:'❄️🐣',n:'こおりひよこ',d:'ひんやり冷静。ミスしない。',tier:2},
+  c7:{e:'🌸🐣',n:'はなひよこ',d:'きれいでかわいい！みんなのアイドル！',tier:2},
+  c8:{e:'💪🐣',n:'ちからひよこ',d:'きたえているよ！つよくなるぞ！',tier:2},
+  c9:{e:'😢🐣',n:'なきひよこ',d:'まちがえちゃった...でもがんばる！',tier:2},
+  c10:{e:'👻🐣',n:'おばけひよこ',d:'うらめしや～！でもたのしい！',tier:2},
+  c11:{e:'🌈🐣',n:'にじひよこ',d:'まえはわるかったけど、みてて！',tier:2},
+  c12:{e:'👑🐣',n:'おうじゃひよこ',d:'よのなかのほとんどをしっている！',tier:2},
+  c13:{e:'🍳🐣',n:'りょうりひよこ',d:'おりょうりがしたい！',tier:2},
+  c14:{e:'💀🐣',n:'ダークひよこ',d:'ワタシハアヤマリガコワイ...',tier:2},
+  c15:{e:'🔮🐣',n:'しんぴひよこ',d:'わたしはいったいなにものなのか...',tier:2},
+  // TIER 3: YOUNG CHICKEN (lv5-6) — 15
+  y1:{e:'🐓',n:'わかどり',d:'ちょっと成長した！',tier:3},
+  y2:{e:'📖🐓',n:'がくしゃどり',d:'知識が増えてきた！もっと学ぶ！',tier:3},
+  y3:{e:'🤘🐓',n:'ヤンキーどり',d:'てめぇ、何見てんだコラ！',tier:3},
+  y4:{e:'⚡🐓',n:'らいてんどり',d:'コンボが神の域に入ってきた！',tier:3},
+  y5:{e:'🔥🐓',n:'かえんどり',d:'炎のように燃え上がる！',tier:3},
+  y6:{e:'❄️🐓',n:'こおりどり',d:'揺るぎない冷静さ。完璧。',tier:3},
+  y7:{e:'🔮🐓',n:'まほうどり',d:'魔法の力が目覚めてきた！',tier:3},
+  y8:{e:'⚔️🐓',n:'ぶしどり',d:'武士の魂を持つ戦士！',tier:3},
+  y9:{e:'🌸🐓',n:'はなどり',d:'美しく、そして強い！',tier:3},
+  y10:{e:'🌑🐓',n:'シャドウどり',d:'闇から這い上がれ...',tier:3},
+  y11:{e:'🌈🐓',n:'にじどり',d:'苦境を乗り越えた虹色の鳥！',tier:3},
+  y12:{e:'👑🐓',n:'おうじゃどり',d:'頂点が見えてきた！',tier:3},
+  y13:{e:'👨‍🍳🐓',n:'シェフどり',d:'料理の道を極める！',tier:3},
+  y14:{e:'🍀🐓',n:'ラッキーどり',d:'なぜか運がいい！',tier:3},
+  y15:{e:'🎭🐓',n:'カメレオンどり',d:'気分によって変わる...',tier:3},
+  // TIER 4: CHICKEN (lv7-8) — 20
+  ch1:{e:'🐔',n:'にわとり',d:'立派なニワトリになった！',tier:4},
+  ch2:{e:'🎖️🐔',n:'えらいにわとり',d:'正確さが光る！尊敬される存在！',tier:4},
+  ch3:{e:'😎🐔',n:'ヤンキーにわとり',d:'ちょっと待て！俺がルールだ！',tier:4},
+  ch4:{e:'⚡🐔',n:'らいでんにわとり',d:'コンボが雷のごとく！',tier:4},
+  ch5:{e:'🔥🐔',n:'えんかにわとり',d:'燃え盛る炎の化身！',tier:4},
+  ch6:{e:'👸🐔',n:'こおりひめにわとり',d:'美しく冷静な女王！',tier:4},
+  ch7:{e:'📜🐔',n:'けんじゃにわとり',d:'知の高みに至った賢者！',tier:4},
+  ch8:{e:'⚔️🐔',n:'しょうぐんにわとり',d:'天下を取りにきた将軍！',tier:4},
+  ch9:{e:'🌟🐔',n:'アイドルにわとり',d:'みんなのアイドルの座を獲得！',tier:4},
+  ch10:{e:'💀🐔',n:'シャドウにわとり',d:'闇の深みへ...もう戻れない',tier:4},
+  ch11:{e:'🦋🐔',n:'フェニックスにわとり',d:'炎の中から蘇った！奇跡の進化！',tier:4},
+  ch12:{e:'🌈🐔',n:'にじにわとり',d:'七色の輝きで世界を照らす！',tier:4},
+  ch13:{e:'👑🐔',n:'おうじゃにわとり',d:'ついに頂点に立った！',tier:4},
+  ch14:{e:'👨‍🍳🐔',n:'シェフにわとり',d:'星付きレストランのシェフ！',tier:4},
+  ch15:{e:'🐉🐔',n:'りゅうにわとり',d:'竜の力を宿した伝説の鳥！',tier:4},
+  ch16:{e:'😇🐔',n:'てんしにわとり',d:'清らかな魂の天使にわとり！',tier:4},
+  ch17:{e:'🥷🐔',n:'にんじゃにわとり',d:'影から影へ、誰も気づかない！',tier:4},
+  ch18:{e:'🏴‍☠️🐔',n:'かいぞくにわとり',d:'七つの海を渡る海賊！',tier:4},
+  ch19:{e:'🧙🐔',n:'まほうつかいにわとり',d:'全てを知り、魔法を使いこなす！',tier:4},
+  ch20:{e:'🤖🐔',n:'ロボにわとり',d:'正確無比なマシン！',tier:4},
+  // TIER 5: SUPER (lv9-10) — 20
+  sp1:{e:'✨🐔',n:'かがやくにわとり',d:'眩いばかりの輝き！',tier:5},
+  sp2:{e:'🏰🐔',n:'きぞくにわとり',d:'貴族中の貴族！城を持つにわとり！',tier:5},
+  sp3:{e:'👿🐔',n:'デーモンにわとり',d:'闇の力が最大解放！かかってこい！',tier:5},
+  sp4:{e:'🌩️🐔',n:'らいていにわとり',d:'雷帝の力で天空を支配！',tier:5},
+  sp5:{e:'🌋🐔',n:'かざんにわとり',d:'火山のエネルギーを秘めた超存在！',tier:5},
+  sp6:{e:'🌌🐔',n:'ほしぞらにわとり',d:'星々を従える宇宙の支配者！',tier:5},
+  sp7:{e:'📚🐔',n:'ちけんのにわとり',d:'全知全能の知識を持つ！',tier:5},
+  sp8:{e:'🗡️🐔',n:'ぶしんにわとり',d:'天下統一！歴史に名を刻む！',tier:5},
+  sp9:{e:'💫🐔',n:'スーパーアイドルにわとり',d:'全宇宙のアイドル！',tier:5},
+  sp10:{e:'☠️🐔',n:'めいふのにわとり',d:'死してなお強くなった...',tier:5},
+  sp11:{e:'🦅🐔',n:'ふしちょうにわとり',d:'不死鳥として甦った！何度でも！',tier:5},
+  sp12:{e:'🌈✨🐔',n:'てんかいのにわとり',d:'天界から降りた聖なる存在！',tier:5},
+  sp13:{e:'👑✨🐔',n:'こくおうにわとり',d:'全ての国を支配する国王！',tier:5},
+  sp14:{e:'🍽️🐔',n:'みっつぼしシェフにわとり',d:'ミシュラン3つ星シェフになった！',tier:5},
+  sp15:{e:'🐲🐔',n:'しんりゅうにわとり',d:'神龍を超えた究極の龍！',tier:5},
+  sp16:{e:'👼🐔',n:'だいてんしにわとり',d:'大天使の加護を受けた至高の存在！',tier:5},
+  sp17:{e:'🌑🥷🐔',n:'おにんじゃにわとり',d:'鬼神の如き忍者！誰も捕まえられない！',tier:5},
+  sp18:{e:'🏴‍☠️✨🐔',n:'でんせつかいぞくにわとり',d:'伝説の海賊王！世界を巡る！',tier:5},
+  sp19:{e:'🌟🧙🐔',n:'だいまほうつかいにわとり',d:'魔法の極致に達した大魔法使い！',tier:5},
+  sp20:{e:'🌟👑🐔',n:'かみのにわとり',d:'神の域に達した！もはや人智を超えた！',tier:5},
+  // LEGENDARY (special) — 20
+  lg1:{e:'💯✨🐔',n:'かんぺきにわとり',d:'完璧を極めた！全問正解を重ねた神！',tier:6},
+  lg2:{e:'🏃🌟🐔',n:'きょくそくにわとり',d:'スピードと正確さを兼ね備えた超人！',tier:6},
+  lg3:{e:'🔥💯🐔',n:'コンボマスターにわとり',d:'25連続...これは人間業ではない！',tier:6},
+  lg4:{e:'📖💯🐔',n:'さいこうけんじゃにわとり',d:'95%超の正解率...真の賢者！',tier:6},
+  lg5:{e:'👨‍🍳💯🐔',n:'でんせつシェフにわとり',d:'50種の料理を制した伝説のシェフ！',tier:6},
+  lg6:{e:'💀👑🐔',n:'やみのおうじゃにわとり',d:'闇の頂点。誰も止められない...',tier:6},
+  lg7:{e:'🦅🌟🐔',n:'ふっかつにわとり',d:'低正解率から大逆転！奇跡の復活！',tier:6},
+  lg8:{e:'🏛️🌟🐔',n:'こだいのにわとり',d:'300問を超えた古代の賢者！',tier:6},
+  lg9:{e:'🌌👑🐔',n:'ぎんがのにわとり',d:'銀河系を支配する宇宙最強！',tier:6},
+  lg10:{e:'🎲💀🐔',n:'こんとんのにわとり',d:'混沌そのもの。ルールなど関係ない！',tier:6},
+  lg11:{e:'🌈👑🐔',n:'にじのかみにわとり',d:'何度倒れても立ち上がった神！',tier:6},
+  lg12:{e:'⏰🌟🐔',n:'じかんのにわとり',d:'時間の流れを超えた存在！',tier:6},
+  lg13:{e:'🌑💫🐔',n:'しじまのにわとり',d:'コンボなしで90%超...静かなる強者！',tier:6},
+  lg14:{e:'⚔️👑🐔',n:'ぶしんにわとり',d:'武神の域に達した究極の戦士！',tier:6},
+  lg15:{e:'😇👑🐔',n:'せいじゃにわとり',d:'天界の主。95%超の正確さ！',tier:6},
+  lg16:{e:'🐉👑🐔',n:'りゅうじんにわとり',d:'全ての力を備えた龍神！',tier:6},
+  lg17:{e:'🍜🌟🐔',n:'ラーメンのかみにわとり',d:'80種の料理を制した！ラーメンの神！',tier:6},
+  lg18:{e:'🌟💫🐔',n:'アルティメットにわとり',d:'全てにおいて最高峰の究極存在！',tier:6},
+  lg19:{e:'👑🎲🌟🐔',n:'かおすおう',d:'混沌と秩序を統べる王！',tier:6},
+  lg20:{e:'❓🌟🐔',n:'みしりのにわとり',d:'あなたはこれをどうやって手に入れたの？',tier:6},
+};
+const CR_TIER_NAMES=['','たまごチーム','ひよこチーム','わかどりチーム','にわとりチーム','スーパーチーム','レジェンドチーム'];
+
+// ═══════════════════════════════════════════
+// FOODS (100)
+// ═══════════════════════════════════════════
+const FOODS=[
+  // ⭐ Common (r:1, combo3+) — 25
+  {id:'f1',e:'🍳',n:'目玉焼き',r:1,c:3},{id:'f2',e:'🥚',n:'ゆで卵',r:1,c:3},
+  {id:'f3',e:'🥚',n:'たまごやき',r:1,c:3},{id:'f4',e:'🍚',n:'たまごかけごはん',r:1,c:3},
+  {id:'f5',e:'🥗',n:'ゆで卵サラダ',r:1,c:3},{id:'f6',e:'🥪',n:'たまごサンド',r:1,c:3},
+  {id:'f7',e:'🍜',n:'月見うどん',r:1,c:3},{id:'f8',e:'🍝',n:'たまごパスタ',r:1,c:3},
+  {id:'f9',e:'🍮',n:'カスタードプリン',r:1,c:3},{id:'f10',e:'🧁',n:'たまごケーキ',r:1,c:3},
+  {id:'f11',e:'🍱',n:'たまご弁当',r:1,c:3},{id:'f12',e:'🥣',n:'たまごおかゆ',r:1,c:3},
+  {id:'f13',e:'🍙',n:'たまごおにぎり',r:1,c:3},{id:'f14',e:'🫕',n:'たまごスープ',r:1,c:3},
+  {id:'f15',e:'🥮',n:'たまごせんべい',r:1,c:3},{id:'f16',e:'🍵',n:'たまご茶',r:1,c:3},
+  {id:'f17',e:'🍦',n:'バニラアイス',r:1,c:3},{id:'f18',e:'🥐',n:'たまごクロワッサン',r:1,c:3},
+  {id:'f19',e:'🧆',n:'スコッチエッグ',r:1,c:3},{id:'f20',e:'🍲',n:'たまご鍋',r:1,c:3},
+  {id:'f21',e:'🫙',n:'塩卵',r:1,c:3},{id:'f22',e:'🥧',n:'エッグタルト',r:1,c:3},
+  {id:'f23',e:'🥚',n:'温泉卵',r:1,c:3},{id:'f24',e:'🧇',n:'フレンチトースト',r:1,c:3},
+  {id:'f25',e:'🍥',n:'なると（たまご）',r:1,c:3},
+  // ⭐⭐ Uncommon (r:2, combo5+) — 20
+  {id:'f26',e:'🍜',n:'親子丼',r:2,c:5},{id:'f27',e:'🍗',n:'からあげ',r:2,c:5},
+  {id:'f28',e:'🍣',n:'たまご寿司',r:2,c:5},{id:'f29',e:'🥩',n:'チキンステーキ',r:2,c:5},
+  {id:'f30',e:'🍛',n:'チキンカレー',r:2,c:5},{id:'f31',e:'🌮',n:'チキンタコス',r:2,c:5},
+  {id:'f32',e:'🥘',n:'チキンシチュー',r:2,c:5},{id:'f33',e:'🍝',n:'チキンパスタ',r:2,c:5},
+  {id:'f34',e:'🍔',n:'チキンバーガー',r:2,c:5},{id:'f35',e:'🥗',n:'シーザーサラダ',r:2,c:5},
+  {id:'f36',e:'🍲',n:'水炊き',r:2,c:5},{id:'f37',e:'🥟',n:'たまご餃子',r:2,c:5},
+  {id:'f38',e:'🍜',n:'たまご麺',r:2,c:5},{id:'f39',e:'🥙',n:'チキンケバブ',r:2,c:5},
+  {id:'f40',e:'🍖',n:'ローストチキン',r:2,c:5},{id:'f41',e:'🫔',n:'チキンブリトー',r:2,c:5},
+  {id:'f42',e:'🥚',n:'味付け卵',r:2,c:5},{id:'f43',e:'🥓',n:'たまごとベーコン',r:2,c:5},
+  {id:'f44',e:'🍱',n:'チキン弁当',r:2,c:5},{id:'f45',e:'🧁',n:'シュークリーム',r:2,c:5},
+  // ⭐⭐⭐ Rare (r:3, combo7+) — 20
+  {id:'f46',e:'🍜',n:'ラーメン（味玉）',r:3,c:7},{id:'f47',e:'🦆',n:'北京ダック',r:3,c:7},
+  {id:'f48',e:'🍣',n:'特上たまご寿司',r:3,c:7},{id:'f49',e:'🥘',n:'パエリア',r:3,c:7},
+  {id:'f50',e:'🍛',n:'バターチキンカレー',r:3,c:7},{id:'f51',e:'🥩',n:'チキンソテー',r:3,c:7},
+  {id:'f52',e:'🍖',n:'ガーリックチキン',r:3,c:7},{id:'f53',e:'🫕',n:'クリームシチュー',r:3,c:7},
+  {id:'f54',e:'🍜',n:'担々麺（たまご）',r:3,c:7},{id:'f55',e:'🥗',n:'ニース風サラダ',r:3,c:7},
+  {id:'f56',e:'🍝',n:'カルボナーラ',r:3,c:7},{id:'f57',e:'🥮',n:'月餅（たまご）',r:3,c:7},
+  {id:'f58',e:'🍰',n:'シフォンケーキ',r:3,c:7},{id:'f59',e:'🎂',n:'バースデーケーキ',r:3,c:7},
+  {id:'f60',e:'🍮',n:'クレームブリュレ',r:3,c:7},{id:'f61',e:'🌯',n:'チキングリル',r:3,c:7},
+  {id:'f62',e:'🧀',n:'キッシュ',r:3,c:7},{id:'f63',e:'🍱',n:'豪華お弁当',r:3,c:7},
+  {id:'f64',e:'🫕',n:'ビーフシチュー（たまご）',r:3,c:7},{id:'f65',e:'🥪',n:'クラブサンド',r:3,c:7},
+  // ⭐⭐⭐⭐ Epic (r:4, combo10+) — 20
+  {id:'f66',e:'🎊',n:'ガレットデロワ',r:4,c:10},{id:'f67',e:'🦃',n:'七面鳥の丸焼き',r:4,c:10},
+  {id:'f68',e:'🍜',n:'金のラーメン',r:4,c:10},{id:'f69',e:'🍗',n:'金のからあげ',r:4,c:10},
+  {id:'f70',e:'🍱',n:'豪華ランチボックス',r:4,c:10},{id:'f71',e:'🥚',n:'黄金たまご料理',r:4,c:10},
+  {id:'f72',e:'🍛',n:'黄金カレー',r:4,c:10},{id:'f73',e:'🍝',n:'黒トリュフパスタ',r:4,c:10},
+  {id:'f74',e:'🍣',n:'究極のたまご丼',r:4,c:10},{id:'f75',e:'🥘',n:'黄金シチュー',r:4,c:10},
+  {id:'f76',e:'🥗',n:'黄金サラダ',r:4,c:10},{id:'f77',e:'🍲',n:'豪華鍋料理',r:4,c:10},
+  {id:'f78',e:'🎂',n:'ウエディングケーキ',r:4,c:10},{id:'f79',e:'🧁',n:'マカロン盛り合わせ',r:4,c:10},
+  {id:'f80',e:'🍮',n:'黄金プリン',r:4,c:10},{id:'f81',e:'🫙',n:'キャビア（たまご）',r:4,c:10},
+  {id:'f82',e:'🥮',n:'皇帝の月餅',r:4,c:10},{id:'f83',e:'🍵',n:'茶会のたまご料理',r:4,c:10},
+  {id:'f84',e:'🥩',n:'黄金チキンステーキ',r:4,c:10},{id:'f85',e:'🎁',n:'秘密の料理BOX',r:4,c:10},
+  // ⭐⭐⭐⭐⭐ Legendary (r:5, combo15+) — 15
+  {id:'f86',e:'🌟',n:'でんせつの目玉焼き',r:5,c:15},{id:'f87',e:'💎',n:'ダイヤモンドエッグ',r:5,c:15},
+  {id:'f88',e:'👑',n:'王者のからあげ',r:5,c:15},{id:'f89',e:'🐉',n:'竜の卵料理',r:5,c:15},
+  {id:'f90',e:'🌈',n:'にじのたまご',r:5,c:15},{id:'f91',e:'✨',n:'きせきの親子丼',r:5,c:15},
+  {id:'f92',e:'🏆',n:'チャンピオンチキン',r:5,c:15},{id:'f93',e:'🌙',n:'月光のプリン',r:5,c:15},
+  {id:'f94',e:'🌌',n:'銀河のたまご料理',r:5,c:15},{id:'f95',e:'⭐',n:'流れ星のオムレツ',r:5,c:15},
+  {id:'f96',e:'🔮',n:'魔法の卵料理',r:5,c:15},{id:'f97',e:'💫',n:'超新星バーガー',r:5,c:15},
+  {id:'f98',e:'🦄',n:'ユニコーンのたまご',r:5,c:15},{id:'f99',e:'👼',n:'天使のシュークリーム',r:5,c:15},
+  {id:'f100',e:'🌟',n:'THE・究極たまご',r:5,c:20},
+];
+
+// ═══════════════════════════════════════════
+// LEVEL SYSTEM  (cumulative XP thresholds)
+// ═══════════════════════════════════════════
+const LV_XP = [0,50,170,420,870,1570,2570,3970,5870,8370];
+const LV_TITLES = ['見習い国語生','がんばりや','語彙の卵','漢字の達人','ことわざ使い','国語探検家','熟語マスター','国語の達人','言葉の魔法使い','国語の女神'];
+
+function xpToLevel(xp){
+  let lv=1;
+  for(let i=0;i<LV_XP.length;i++){if(xp>=LV_XP[i])lv=i+1;else break;}
+  return lv;
+}
+function levelProgress(xp){
+  const lv=xpToLevel(xp);
+  const cur=LV_XP[lv-1]||0;
+  const next=LV_XP[lv]||LV_XP[LV_XP.length-1];
+  const inLv=xp-cur, needed=next-cur;
+  return {pct:Math.min(100,Math.round(inLv/needed*100)),inLv,needed};
+}
+
+// ═══════════════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════════════
+const SK='jquiz_v1';
+function defData(){return{cor:0,tot:0,wrongs:[],xp:0,maxCombo:0,foods:[],seenCreatures:[],perfects:0,lastCreature:null,catStats:{}};}
+function load(){
+  try{
+    const d=localStorage.getItem(SK);
+    if(!d)return defData();
+    const p=JSON.parse(d);
+    const def=defData();
+    // merge — drop old badges field, add new fields
+    return{...def,...p,foods:p.foods||[],seenCreatures:p.seenCreatures||[],perfects:p.perfects||0,lastCreature:p.lastCreature||null,catStats:p.catStats||{}};
+  }catch{return defData();}
+}
+function save(d){try{localStorage.setItem(SK,JSON.stringify(d));}catch{}}
+
+// ═══════════════════════════════════════════
+// AUDIO  (Web Audio API)
+// ═══════════════════════════════════════════
+let _ac=null;
+function ac(){if(!_ac)try{_ac=new(window.AudioContext||window.webkitAudioContext)();}catch{}return _ac;}
+function tone(f,t,dur,vol=0.28,at=0){
+  const ctx=ac();if(!ctx)return;
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.connect(g);g.connect(ctx.destination);
+  o.type=t;o.frequency.setValueAtTime(f,ctx.currentTime+at);
+  g.gain.setValueAtTime(vol,ctx.currentTime+at);
+  g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+at+dur);
+  o.start(ctx.currentTime+at);o.stop(ctx.currentTime+at+dur);
+}
+function sndOK(){tone(523,'sine',.13);tone(659,'sine',.13,0.28,.1);tone(784,'sine',.22,0.28,.2);}
+function sndNG(){tone(311,'sawtooth',.1,.18);tone(270,'sawtooth',.18,.18,.1);}
+function sndCombo(c){const fs=[523,587,659,698,784];tone(fs[Math.min(c-2,4)],'sine',.1,.22);tone(fs[Math.min(c-2,4)]*1.5,'sine',.18,.22,.1);}
+function sndLvUp(){[523,659,784,1047].forEach((f,i)=>tone(f,'sine',.18,.28,i*.13));}
+function sndBadge(){[880,1047,1318].forEach((f,i)=>tone(f,'sine',.12,.26,i*.13));}
+
+// ═══════════════════════════════════════════
+// PARTICLES
+// ═══════════════════════════════════════════
+const COLORS=['#FF6B9D','#FFD700','#A78BFA','#34D399','#60A5FA','#FF8C00'];
+function particles(x,y){
+  const c=document.getElementById('pcont');
+  for(let i=0;i<14;i++){
+    const p=document.createElement('div');
+    p.className='ptcl';
+    p.style.cssText=`left:${x+(Math.random()-.5)*55}px;top:${y+(Math.random()-.5)*55}px;background:${COLORS[i%COLORS.length]};animation-duration:${.6+Math.random()*.7}s;animation-delay:${Math.random()*.25}s`;
+    c.appendChild(p);setTimeout(()=>p.remove(),1500);
+  }
+}
+function xpFloat(xp,el){
+  const r=el.getBoundingClientRect();
+  const d=document.createElement('div');
+  d.className='xp-float';d.textContent='+'+xp+' XP';
+  d.style.cssText=`left:${r.left+r.width/2-25}px;top:${r.top-8}px`;
+  document.body.appendChild(d);setTimeout(()=>d.remove(),1500);
+}
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let gd=load();
+let qs={qs:[],idx:0,ans:[],score:0,combo:0,maxCombo:0,xpGained:0,mode:'normal',answered:false};
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+function goScreen(name){
+  ['home','quiz','result','collection','diag'].forEach(s=>document.getElementById('sc-'+s).classList.add('hidden'));
+  document.getElementById('sc-'+name).classList.remove('hidden');
+  if(name==='home')homeUI();
+  if(name==='collection')collectionUI();
+  if(name==='diag')diagUI();
+}
+
+// ═══════════════════════════════════════════
+// HOME UI
+// ═══════════════════════════════════════════
+function homeUI(){
+  const lv=xpToLevel(gd.xp);
+  document.getElementById('h-lv').textContent=lv;
+  document.getElementById('h-title').textContent=LV_TITLES[lv-1]||LV_TITLES[LV_TITLES.length-1];
+  const p=levelProgress(gd.xp);
+  document.getElementById('h-xpbar').style.width=p.pct+'%';
+  document.getElementById('h-xptxt').textContent=`${p.inLv} / ${p.needed} XP`;
+  document.getElementById('h-total').textContent=gd.tot;
+  document.getElementById('h-acc').textContent=gd.tot>0?Math.round(gd.cor/gd.tot*100)+'%':'-';
+  document.getElementById('h-combo').textContent=gd.maxCombo;
+  document.getElementById('h-foods').textContent=gd.foods.length;
+  const rb=document.getElementById('review-btn');
+  if(gd.wrongs.length===0){rb.disabled=true;rb.textContent='📝 復習モード（間違いなし）';}
+  else{rb.disabled=false;rb.textContent=`📝 復習モード（${gd.wrongs.length}問）`;}
+  // creature display
+  const cid=getCreatureId(gd);
+  const cr=CREATURES[cid]||CREATURES.e1;
+  document.getElementById('cr-emoji').textContent=cr.e;
+  document.getElementById('cr-name').textContent=cr.n;
+  document.getElementById('cr-desc').textContent=cr.d;
+  const tb=document.getElementById('cr-tier');
+  tb.textContent=CR_TIER_NAMES[cr.tier]||'';
+  tb.className='cr-tier-badge tier'+cr.tier;
+}
+
+// ═══════════════════════════════════════════
+// CREATURE EVOLUTION
+// ═══════════════════════════════════════════
+function getCreatureId(gd){
+  const lv=xpToLevel(gd.xp);
+  const acc=gd.tot>0?gd.cor/gd.tot:0.5;
+  const combo=gd.maxCombo||0;
+  const tot=gd.tot||0;
+  const foods=(gd.foods||[]).length;
+  const perfects=gd.perfects||0;
+
+  if(lv<=2){
+    if(tot<5)return 'e1';
+    if(lv===2&&acc>0.9)return 'e9';
+    if(lv===2&&acc>0.75&&combo>=8)return 'e10';
+    if(combo>=8)return 'e6';
+    if(combo>=5)return 'e4';
+    if(acc>0.8)return lv===2?'e7':'e3';
+    if(acc<0.4)return 'e8';
+    if(combo<2&&tot>=10)return 'e5';
+    return 'e2';
+  }
+  if(lv<=4){
+    if(lv===4&&acc>0.9)return 'c12';
+    if(acc>0.85)return 'c7';
+    if(acc<0.35)return 'c14';
+    if(acc<0.45)return 'c3';
+    if(combo>=10)return 'c4';
+    if(combo>=7&&acc>0.65)return 'c5';
+    if(acc>0.8&&combo<4)return 'c6';
+    if(acc>0.8)return 'c2';
+    if(foods>=5)return 'c13';
+    if(acc<0.5&&tot>15)return 'c9';
+    if(combo>=5&&acc>0.65)return 'c8';
+    if(acc<0.5)return 'c10';
+    return 'c1';
+  }
+  if(lv<=6){
+    if(lv===6&&acc>0.9)return 'y12';
+    if(acc>0.85)return 'y9';
+    if(acc<0.35)return 'y10';
+    if(acc<0.45)return 'y3';
+    if(combo>=12)return 'y4';
+    if(combo>=10)return 'y5';
+    if(acc>0.8&&combo<5)return 'y6';
+    if(foods>=15)return 'y13';
+    if(acc>0.75&&tot>=80)return 'y7';
+    if(acc>0.7&&combo>=8)return 'y8';
+    if(tot>=60)return 'y2';
+    return 'y1';
+  }
+  if(lv<=8){
+    if(lv===8&&acc>0.9)return 'ch13';
+    if(acc>0.88)return 'ch16';
+    if(acc<0.35)return 'ch10';
+    if(acc<0.45)return 'ch3';
+    if(combo>=20)return 'ch5';
+    if(combo>=18)return 'ch15';
+    if(combo>=15)return 'ch4';
+    if(acc>0.85&&combo<8)return 'ch6';
+    if(acc>0.8&&tot>=150)return 'ch19';
+    if(acc>0.8&&tot>=100)return 'ch7';
+    if(acc>0.7&&combo>=10)return 'ch8';
+    if(acc>0.75)return 'ch9';
+    if(foods>=25)return 'ch14';
+    if(combo>=12)return 'ch15';
+    return 'ch1';
+  }
+  // Lv9+
+  if(perfects>=3)return 'lg1';
+  if(tot>=300)return 'lg8';
+  if(combo>=25)return 'lg3';
+  if(acc>0.95&&tot>=100)return 'lg4';
+  if(foods>=80)return 'lg17';
+  if(foods>=50)return 'lg5';
+  if(acc>0.9&&combo>=20)return 'lg9';
+  if(acc>0.9&&combo<3)return 'lg13';
+  if(acc>0.8&&combo>=20)return 'lg14';
+  if(acc>0.92)return 'sp16';
+  if(acc>0.9)return 'sp13';
+  if(acc<0.35)return 'sp10';
+  if(acc<0.45)return 'sp3';
+  if(combo>=22)return 'sp5';
+  if(combo>=18)return 'sp4';
+  if(acc>0.85&&combo<5)return 'sp6';
+  if(acc>0.8&&tot>=150)return 'sp7';
+  if(acc>0.72&&combo>=12)return 'sp8';
+  if(acc>0.78)return 'sp9';
+  if(foods>=30)return 'sp14';
+  return 'sp1';
+}
+
+function rollFood(combo){
+  const maxR=combo>=20?5:combo>=10?4:combo>=7?3:combo>=5?2:1;
+  const eligible=FOODS.filter(f=>f.c<=combo&&f.r<=maxR&&!gd.foods.includes(f.id));
+  if(!eligible.length)return null;
+  // weight: common more likely
+  const pool=[];
+  eligible.forEach(f=>{const w=maxR-f.r+1;for(let i=0;i<w;i++)pool.push(f);});
+  return pool[Math.floor(Math.random()*pool.length)]||null;
+}
+
+// ═══════════════════════════════════════════
+// START QUIZ
+// ═══════════════════════════════════════════
+const ALL_CATS=['漢字の読み','漢字の書き','ことわざ','慣用句','語彙','文法'];
+let selectedCats=new Set(ALL_CATS);
+
+// 難易度: 1=易しい 2=普通 3=難しい
+const Q_DIFF={
+  1:1,2:2,3:2,4:1,5:1,6:1,7:1,8:1,9:1,10:1,11:1,12:1,13:1,14:2,15:1,16:2,17:2,18:2,19:1,20:1,
+  21:1,22:1,23:1,24:1,25:1,26:1,27:1,28:1,29:1,30:1,
+  31:2,32:2,33:2,34:1,35:2,36:2,37:2,38:2,39:2,40:2,
+  41:2,42:2,43:3,44:2,45:1,46:1,47:2,48:1,49:1,50:2,
+  51:1,52:1,53:2,54:3,55:3,56:2,57:1,58:2,59:2,60:2,
+  61:1,62:1,63:1,64:1,65:1,66:1,67:2,68:1,69:2,70:2,
+  71:1,72:1,73:1,74:1,75:1,76:1,77:2,78:1,79:2,80:1,
+  81:1,82:1,83:2,84:1,85:2,86:2,87:2,88:2,89:2,90:1,
+  91:1,92:2,93:2,94:2,95:2,96:1,97:1,98:2,99:1,100:2,
+  101:1,102:2,103:1,104:2,105:1,106:1,107:1,108:1,109:2,110:1,
+  111:2,112:1,113:2,114:1,115:1,116:2,117:2,118:2,119:2,120:2,
+  121:2,122:2,123:1,124:2,125:3,126:2,127:2,128:3,129:2,130:2,
+  131:2,132:1,133:2,134:1,135:1,136:2,137:2,138:2,139:3,140:3,
+  141:2,142:2,143:2,144:2,145:3,146:2,147:2,148:2,149:2,150:1,
+  151:2,152:2,153:2,154:3,155:3,156:2,157:1,158:2,159:3,160:2,
+  161:2,162:2,163:2,164:3,165:1,166:3,167:2,168:2,169:2,170:3,
+  171:3,172:3,173:3,174:3,175:3,176:3,177:3,178:3,179:3,180:3,
+  181:3,182:2,183:3,184:3,185:2,
+  186:2,187:2,188:2,189:2,190:2,191:2,192:2,193:1,194:1,195:1,
+  196:1,197:1,198:1,199:1,200:2,201:2,202:2,203:3,204:3,205:3,
+  206:3,207:3,208:3,209:2,210:3,211:2,212:2,213:2,214:2,215:2,
+  216:1,217:2,218:3,219:2,220:1,
+  // 漢字の読み 221-380
+  221:1,222:1,223:1,224:2,225:1,226:2,227:1,228:2,229:1,230:2,
+  231:2,232:2,233:2,234:2,235:2,236:2,237:2,238:2,239:2,240:2,
+  241:2,242:2,243:1,244:2,245:2,246:2,247:3,248:2,249:2,250:2,
+  251:2,252:2,253:3,254:2,255:3,256:2,257:3,258:2,259:2,260:2,
+  261:3,262:3,263:3,264:2,265:3,266:3,267:3,268:3,269:3,270:3,
+  271:3,272:3,273:3,274:3,275:3,276:3,277:3,278:3,279:3,280:3,
+  281:2,282:2,283:2,284:2,285:2,286:2,287:2,288:2,289:2,290:2,
+  291:2,292:2,293:2,294:2,295:2,296:2,297:2,298:2,299:2,300:2,
+  301:2,302:2,303:2,304:2,305:2,306:2,307:2,308:2,309:2,310:2,
+  311:2,312:2,313:2,314:2,315:2,316:3,317:3,318:3,319:3,320:3,
+  321:3,322:3,323:3,324:3,325:3,326:3,327:3,328:3,329:3,330:3,
+  331:3,332:3,333:3,334:3,335:3,336:3,337:3,338:3,339:3,340:3,
+  341:1,342:1,343:2,344:2,345:2,346:2,347:2,348:2,349:2,350:2,
+  351:2,352:2,353:2,354:2,355:2,356:2,357:2,358:2,359:2,360:2,
+  361:2,362:2,363:2,364:2,365:2,366:2,367:2,368:2,369:3,370:3,
+  371:3,372:3,373:3,374:3,375:3,376:3,377:3,378:3,379:3,380:3,
+  // 漢字の書き 381-520
+  381:1,382:1,383:1,384:1,385:1,386:1,387:1,388:1,389:1,390:2,
+  391:2,392:2,393:2,394:2,395:2,396:2,397:2,398:2,399:2,400:2,
+  401:2,402:2,403:2,404:2,405:2,406:2,407:2,408:2,409:2,410:2,
+  411:2,412:2,413:2,414:2,415:2,416:2,417:2,418:2,419:2,420:2,
+  421:2,422:2,423:2,424:2,425:2,426:2,427:2,428:3,429:3,430:3,
+  431:3,432:3,433:3,434:3,435:3,436:3,437:3,438:3,439:3,440:3,
+  441:3,442:3,443:3,444:3,445:3,446:3,447:3,448:3,449:3,450:3,
+  451:1,452:1,453:1,454:1,455:1,456:1,457:1,458:2,459:2,460:2,
+  461:2,462:2,463:2,464:2,465:2,466:2,467:2,468:2,469:2,470:2,
+  471:2,472:2,473:2,474:2,475:2,476:3,477:3,478:3,479:3,480:3,
+  481:3,482:3,483:3,484:3,485:3,486:3,487:3,488:3,489:3,490:3,
+  491:1,492:1,493:2,494:2,495:2,496:2,497:2,498:2,499:2,500:2,
+  501:2,502:2,503:2,504:3,505:3,506:3,507:3,508:3,509:3,510:3,
+  511:3,512:3,513:3,514:3,515:3,516:3,517:3,518:3,519:3,520:3,
+  // ことわざ 521-640
+  521:1,522:1,523:1,524:1,525:1,526:1,527:1,528:1,529:1,530:1,
+  531:2,532:2,533:2,534:2,535:2,536:2,537:2,538:2,539:2,540:2,
+  541:2,542:2,543:2,544:2,545:2,546:2,547:2,548:2,549:2,550:2,
+  551:2,552:2,553:2,554:2,555:2,556:2,557:2,558:2,559:2,560:2,
+  561:2,562:2,563:2,564:2,565:2,566:2,567:2,568:2,569:2,570:2,
+  571:3,572:3,573:3,574:3,575:3,576:3,577:3,578:3,579:3,580:3,
+  581:3,582:3,583:3,584:3,585:3,586:3,587:3,588:3,589:3,590:3,
+  591:3,592:3,593:3,594:3,595:3,596:2,597:2,598:2,599:2,600:2,
+  601:2,602:2,603:2,604:2,605:2,606:2,607:2,608:2,609:2,610:2,
+  611:2,612:2,613:2,614:2,615:2,616:3,617:3,618:3,619:3,620:3,
+  621:3,622:3,623:3,624:3,625:3,626:3,627:3,628:3,629:3,630:3,
+  631:3,632:3,633:3,634:3,635:3,636:3,637:3,638:3,639:3,640:3,
+  // 慣用句 641-760
+  641:1,642:1,643:1,644:2,645:2,646:2,647:1,648:1,649:2,650:3,
+  651:1,652:2,653:2,654:2,655:1,656:2,657:2,658:2,659:3,660:2,
+  661:2,662:2,663:2,664:2,665:2,666:1,667:2,668:2,669:2,670:2,
+  671:1,672:2,673:1,674:1,675:3,676:2,677:2,678:2,679:2,680:2,
+  681:2,682:2,683:2,684:2,685:3,686:1,687:2,688:2,689:3,690:3,
+  691:3,692:2,693:3,694:2,695:1,696:2,697:1,698:2,699:3,700:2,
+  701:2,702:1,703:3,704:2,705:2,706:2,707:2,708:3,709:3,710:3,
+  711:2,712:2,713:3,714:3,715:3,716:2,717:3,718:3,719:2,720:2,
+  721:2,722:1,723:2,724:3,725:2,726:3,727:2,728:3,729:1,730:2,
+  731:2,732:3,733:3,734:2,735:2,736:2,737:2,738:2,739:3,740:3,
+  741:2,742:2,743:2,744:2,745:1,746:2,747:3,748:3,749:2,750:2,
+  751:3,752:2,753:2,754:3,755:2,756:2,757:3,758:2,759:1,760:3,
+  // 語彙 761-880
+  761:1,762:2,763:3,764:2,765:1,766:1,767:1,768:1,769:1,770:1,
+  771:1,772:2,773:2,774:2,775:2,776:2,777:2,778:2,779:1,780:2,
+  781:2,782:2,783:2,784:2,785:2,786:2,787:1,788:2,789:1,790:2,
+  791:1,792:3,793:2,794:1,795:1,796:2,797:2,798:2,799:2,800:1,
+  801:1,802:2,803:1,804:1,805:2,806:2,807:1,808:2,809:2,810:3,
+  811:2,812:2,813:3,814:2,815:2,816:2,817:1,818:2,819:2,820:2,
+  821:2,822:2,823:2,824:2,825:2,826:2,827:2,828:2,829:1,830:2,
+  831:2,832:2,833:2,834:2,835:2,836:3,837:2,838:2,839:2,840:2,
+  841:2,842:3,843:2,844:2,845:2,846:1,847:2,848:2,849:2,850:3,
+  851:2,852:2,853:2,854:2,855:2,856:3,857:3,858:2,859:1,860:3,
+  861:2,862:2,863:2,864:2,865:1,866:2,867:1,868:2,869:2,870:2,
+  871:1,872:2,873:2,874:2,875:1,876:2,877:3,878:3,879:3,880:3,
+  // 文法 881-1000
+  881:1,882:1,883:2,884:2,885:1,886:1,887:1,888:1,889:2,890:1,
+  891:2,892:2,893:2,894:2,895:2,896:2,897:2,898:2,899:1,900:2,
+  901:2,902:1,903:1,904:1,905:1,906:3,907:2,908:3,909:3,910:2,
+  911:2,912:2,913:2,914:2,915:1,916:2,917:3,918:2,919:2,920:2,
+  921:2,922:3,923:2,924:2,925:2,926:2,927:2,928:3,929:2,930:3,
+  931:2,932:2,933:2,934:2,935:2,936:2,937:2,938:3,939:2,940:2,
+  941:2,942:2,943:3,944:2,945:2,946:2,947:2,948:2,949:1,950:3,
+  951:2,952:2,953:2,954:3,955:2,956:3,957:2,958:2,959:2,960:2,
+  961:2,962:3,963:3,964:3,965:2,966:3,967:3,968:3,969:2,970:2,
+  971:2,972:2,973:3,974:3,975:3,976:3,977:3,978:3,979:3,980:2,
+  981:2,982:2,983:2,984:2,985:3,986:2,987:3,988:2,989:2,990:3,
+  991:3,992:2,993:2,994:3,995:2,996:2,997:2,998:3,999:3,1000:3,
+};
+let selectedDiff=0; // 0=すべて
+
+function setDiff(d,el){
+  selectedDiff=d;
+  document.querySelectorAll('#diff-chips .cat-chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function toggleCat(cat,el){
+  if(selectedCats.has(cat)){
+    if(selectedCats.size<=1){toast('最低1つは選んでください');return;}
+    selectedCats.delete(cat);
+    el.classList.remove('on');
+  } else {
+    selectedCats.add(cat);
+    el.classList.add('on');
+  }
+}
+
+function startQuiz(mode){
+  qs.mode=mode;qs.idx=0;qs.ans=[];qs.score=0;qs.combo=0;qs.maxCombo=0;qs.xpGained=0;qs.answered=false;qs.foodsEarned=[];
+  if(!gd.lastCreature){gd.lastCreature=getCreatureId(gd);if(!gd.seenCreatures.includes(gd.lastCreature))gd.seenCreatures.push(gd.lastCreature);}
+  let pool;
+  if(mode==='review'){
+    pool=QS.filter(q=>gd.wrongs.includes(q.id));
+    if(!pool.length){toast('復習する問題がありません！');return;}
+  } else {
+    pool=QS.filter(q=>selectedCats.has(q.cat)&&(selectedDiff===0||(Q_DIFF[q.id]||2)===selectedDiff));
+    if(!pool.length){toast('その条件に合う問題がありません');return;}
+  }
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+  qs.qs=pool.slice(0,Math.min(10,pool.length));
+  document.getElementById('mode-banner').innerHTML=mode==='review'?'<div class="mode-banner">📝 復習モード</div>':'';
+  goScreen('quiz');
+  renderQ();
+}
+
+// ═══════════════════════════════════════════
+// RENDER QUESTION
+// ═══════════════════════════════════════════
+function renderQ(){
+  const q=qs.qs[qs.idx],tot=qs.qs.length,i=qs.idx;
+  document.getElementById('q-count').textContent=`${i+1}/${tot}`;
+  document.getElementById('prog-bar').style.width=`${(i/tot)*100}%`;
+  renderCombo();
+  const catEl=document.getElementById('q-cat');
+  catEl.textContent=q.cat;catEl.className='cat-badge '+(CAT_CLASS[q.cat]||'c1');
+  document.getElementById('q-text').textContent=q.q;
+  const grid=document.getElementById('choices');
+  grid.innerHTML='';
+  const nums=['①','②','③','④'];
+  q.cs.forEach((c,ci)=>{
+    const b=document.createElement('button');
+    b.className='ch-btn';b.textContent=`${nums[ci]}　${c}`;
+    b.onclick=()=>pick(ci,b);
+    grid.appendChild(b);
+  });
+  document.getElementById('expl-area').innerHTML='';
+  document.getElementById('next-btn').classList.add('hidden');
+  qs.answered=false;
+}
+
+function renderCombo(){
+  const w=document.getElementById('combo-wrap');
+  w.innerHTML=qs.combo>=2?`<div class="combo-pill">🔥 ${qs.combo}コンボ継続中！</div>`:'';
+}
+
+// ═══════════════════════════════════════════
+// PICK ANSWER
+// ═══════════════════════════════════════════
+function pick(ci,btn){
+  if(qs.answered)return;
+  qs.answered=true;
+  const q=qs.qs[qs.idx];
+  const ok=ci===q.a;
+  document.querySelectorAll('.ch-btn').forEach(b=>b.onclick=null);
+
+  if(ok){
+    btn.classList.add('correct');
+    qs.score++;qs.combo++;
+    if(qs.combo>qs.maxCombo)qs.maxCombo=qs.combo;
+    const xp=10+Math.min(qs.combo-1,9)*2;
+    qs.xpGained+=xp;
+    sndOK();
+    const r=btn.getBoundingClientRect();
+    particles(r.left+r.width/2,r.top+r.height/2);
+    xpFloat(xp,btn);
+    if(qs.combo>=2)setTimeout(()=>sndCombo(qs.combo),320);
+    // egg laying: tier4+ (Lv7+) + combo3+
+    if(qs.combo>=3&&xpToLevel(gd.xp)>=7){
+      const food=rollFood(qs.combo);
+      if(food){
+        gd.foods.push(food.id);
+        (qs.foodsEarned=qs.foodsEarned||[]).push(food);
+        save(gd);
+        setTimeout(()=>foodToast(food),500);
+      }
+    }
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('.ch-btn')[q.a].classList.add('show-ok');
+    qs.combo=0;
+    sndNG();
+    if(!gd.wrongs.includes(q.id))gd.wrongs.push(q.id);
+  }
+  qs.ans.push({id:q.id,ok});
+  // category stats
+  if(!gd.catStats[q.cat])gd.catStats[q.cat]={cor:0,tot:0};
+  gd.catStats[q.cat].tot++;
+  if(ok)gd.catStats[q.cat].cor++;
+  setTimeout(renderCombo,80);
+
+  document.getElementById('expl-area').innerHTML=`
+    <div class="expl-box">
+      <div class="expl-head">${ok?'✅ 正解！':'❌ 不正解'}</div>
+      <div><strong>正解：</strong>${q.cs[q.a]}</div>
+      <div style="margin-top:7px;color:#555">${q.e}</div>
+    </div>`;
+
+  const nb=document.getElementById('next-btn');
+  nb.classList.remove('hidden');
+  nb.textContent=qs.idx===qs.qs.length-1?'結果を見る！🎉':'つぎの問題へ →';
+}
+
+// ═══════════════════════════════════════════
+// NEXT QUESTION
+// ═══════════════════════════════════════════
+function nextQ(){
+  qs.idx++;
+  if(qs.idx>=qs.qs.length)showResult();
+  else renderQ();
+}
+
+// ═══════════════════════════════════════════
+// RESULT
+// ═══════════════════════════════════════════
+function showResult(){
+  const score=qs.score,total=qs.qs.length,pct=Math.round(score/total*100);
+  const oldCreature=gd.lastCreature||getCreatureId(gd);
+  gd.cor+=score;gd.tot+=total;
+  qs.ans.forEach(a=>{if(a.ok)gd.wrongs=gd.wrongs.filter(id=>id!==a.id);});
+  if(qs.maxCombo>gd.maxCombo)gd.maxCombo=qs.maxCombo;
+  const oldLv=xpToLevel(gd.xp);
+  gd.xp+=qs.xpGained;
+  const newLv=xpToLevel(gd.xp);
+  if(score===total&&total>0)gd.perfects=(gd.perfects||0)+1;
+  const newCreature=getCreatureId(gd);
+  const evolved=newCreature!==oldCreature;
+  if(evolved){
+    if(!gd.seenCreatures.includes(newCreature))gd.seenCreatures.push(newCreature);
+    gd.lastCreature=newCreature;
+  }
+  // foods earned this session (already added in pick, just collect for display)
+  const foodsThisRound=qs.foodsEarned||[];
+  save(gd);
+  goScreen('result');
+
+  // animate score
+  let c=0;
+  const ce=document.getElementById('r-correct');
+  document.getElementById('r-total').textContent=total;
+  document.getElementById('r-pct').textContent=pct+'% 正解';
+  const iv=setInterval(()=>{c++;ce.textContent=c;if(c>=score)clearInterval(iv);},70);
+
+  // stars
+  const sc=pct===100?3:pct>=70?2:pct>=40?1:0;
+  document.getElementById('stars').innerHTML=[0,1,2].map(i=>
+    `<span class="star ${i<sc?'star-on':'star-off'}" style="animation-delay:${i*.2}s">★</span>`).join('');
+
+  document.getElementById('r-summary').innerHTML=`
+    <div class="res-item"><div class="res-v">+${qs.xpGained}</div><div class="res-l">XP獲得</div></div>
+    <div class="res-item"><div class="res-v">${qs.maxCombo}</div><div class="res-l">最高コンボ</div></div>
+    <div class="res-item"><div class="res-v">${gd.wrongs.length}</div><div class="res-l">復習問題数</div></div>`;
+
+  // foods earned section
+  const fes=document.getElementById('foods-earned-sec');
+  if(foodsThisRound.length>0){
+    fes.classList.remove('hidden');
+    const rStars=r=>'⭐'.repeat(r);
+    document.getElementById('foods-earned').innerHTML=foodsThisRound.map(f=>
+      `<div class="food-item"><span class="food-e">${f.e}</span><div class="food-n">${f.n}</div><div class="food-r">${rStars(f.r)}</div></div>`).join('');
+  } else fes.classList.add('hidden');
+
+  document.getElementById('review-result-btn').disabled=gd.wrongs.length===0;
+  document.getElementById('retry-btn').textContent=qs.mode==='review'?'復習をもう一度！':'もう一度！';
+
+  let delay=0;
+  if(newLv>oldLv){setTimeout(()=>showLvUp(newLv),1000);delay=2200;}
+  if(evolved){setTimeout(()=>showEvoModal(newCreature),delay+600);}
+}
+
+// ═══════════════════════════════════════════
+// COLLECTION UI
+// ═══════════════════════════════════════════
+let _collTab='food';
+function switchCollTab(t){
+  _collTab=t;
+  document.getElementById('tab-food').className='coll-tab'+(t==='food'?' on':'');
+  document.getElementById('tab-cr').className='coll-tab'+(t==='cr'?' on':'');
+  document.getElementById('coll-food-panel').classList.toggle('hidden',t!=='food');
+  document.getElementById('coll-cr-panel').classList.toggle('hidden',t!=='cr');
+}
+
+function collectionUI(){
+  // ensure current creature is seeded
+  const curCr=gd.lastCreature||getCreatureId(gd);
+  if(!gd.seenCreatures.includes(curCr)){gd.seenCreatures.push(curCr);gd.lastCreature=curCr;save(gd);}
+  const seen=new Set(gd.seenCreatures);
+  const rStars=r=>'⭐'.repeat(r);
+  // foods panel
+  document.getElementById('coll-food-panel').innerHTML=
+    `<div class="food-grid">${FOODS.map(f=>{
+      const have=gd.foods.includes(f.id);
+      return`<div class="food-item${have?'':' locked'}">
+        <span class="food-e">${f.e}</span>
+        <div class="food-n">${have?f.n:'？？？'}</div>
+        <div class="food-r">${rStars(f.r)}</div>
+      </div>`;}).join('')}</div>`;
+  // creatures panel
+  const crKeys=Object.keys(CREATURES);
+  document.getElementById('coll-cr-panel').innerHTML=
+    `<div class="cr-grid">${crKeys.map(k=>{
+      const cr=CREATURES[k];
+      const have=seen.has(k);
+      return`<div class="cr-item${have?'':' locked'}">
+        <span class="cr-item-e">${cr.e}</span>
+        <div class="cr-item-n">${have?cr.n:'？？？'}</div>
+      </div>`;}).join('')}</div>`;
+  // progress
+  document.getElementById('coll-prog').textContent=`料理 ${gd.foods.length}/100・進化 ${seen.size}/100`;
+  switchCollTab(_collTab);
+}
+
+// ═══════════════════════════════════════════
+// DIAGNOSTIC UI
+// ═══════════════════════════════════════════
+const CAT_COLORS=['#3498DB','#27AE60','#E67E22','#9B59B6','#E74C3C','#1ABC9C'];
+function diagUI(){
+  document.getElementById('diag-sub').textContent=`合計 ${gd.tot} 問挑戦`;
+  // overall meter
+  const pct=gd.tot>0?Math.round(gd.cor/gd.tot*100):0;
+  const circ=339.3;
+  document.getElementById('diag-arc').style.strokeDashoffset=circ*(1-pct/100);
+  document.getElementById('diag-pct-num').textContent=pct+'%';
+  document.getElementById('diag-pct-sub2').textContent=`${gd.cor} / ${gd.tot} 問`;
+  // category bars
+  const el=document.getElementById('diag-cats');
+  if(gd.tot===0){el.innerHTML='<div class="diag-no-data">まだ問題を解いていません。<br>クイズに挑戦しよう！</div>';return;}
+  el.innerHTML=ALL_CATS.map((cat,i)=>{
+    const s=gd.catStats[cat]||{cor:0,tot:0};
+    const p=s.tot>0?Math.round(s.cor/s.tot*100):0;
+    const col=CAT_COLORS[i];
+    return`<div class="diag-cat-row">
+      <div class="diag-cat-label">
+        <span class="diag-cat-name">${cat}</span>
+        <span class="diag-cat-score">${s.tot>0?`${s.cor}/${s.tot}問 (${p}%)`:'未挑戦'}</span>
+      </div>
+      <div class="diag-bar-bg">
+        <div class="diag-bar-fill" style="width:${p}%;background:${col}"></div>
+      </div>
+    </div>`;}).join('');
+}
+
+// ═══════════════════════════════════════════
+// MODALS / TOASTS
+// ═══════════════════════════════════════════
+function showLvUp(lv){
+  document.getElementById('modal-lv-num').textContent=lv;
+  document.getElementById('modal-lv-title').textContent='「'+(LV_TITLES[lv-1]||LV_TITLES[LV_TITLES.length-1])+'」';
+  document.getElementById('lv-modal').classList.remove('hidden');
+  sndLvUp();
+  particles(window.innerWidth/2,window.innerHeight/2);
+}
+function closeLvModal(){document.getElementById('lv-modal').classList.add('hidden');}
+
+function foodToast(food){
+  const el=document.getElementById('b-toast');
+  el.textContent=`${food.e} 料理ゲット：${food.n} ${'⭐'.repeat(food.r)}`;
+  el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3000);
+}
+function showEvoModal(cid){
+  const cr=CREATURES[cid]||CREATURES.e1;
+  document.getElementById('evo-emoji').textContent=cr.e;
+  document.getElementById('evo-name').textContent=cr.n;
+  document.getElementById('evo-desc').textContent=cr.d;
+  document.getElementById('evo-modal').classList.remove('hidden');
+  sndLvUp();
+  particles(window.innerWidth/2,window.innerHeight/3);
+}
+function closeEvoModal(){document.getElementById('evo-modal').classList.add('hidden');}
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+// ═══════════════════════════════════════════
+// MISC
+// ═══════════════════════════════════════════
+function retryQuiz(){startQuiz(qs.mode);}
+function confirmQuit(){if(confirm('クイズをやめますか？'))goScreen('home');}
+function resetData(){
+  if(!confirm('全てのデータをリセットしますか？\nレベル・コレクション・回答記録がすべて消えます。'))return;
+  localStorage.removeItem(SK);
+  gd=defData();
+  homeUI();
+  toast('データをリセットしました');
+}
+
+// INIT
+gd=load();homeUI();
+</script>
+</body>
+</html>
