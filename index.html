@@ -210,6 +210,8 @@ html,body{width:100%;min-height:100vh;font-family:-apple-system,'Hiragino Sans',
 .rp-item-reason{font-size:.88rem;color:var(--red)}
 .rp-item-note{font-size:.83rem;color:var(--mid);margin-top:4px}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init('9lTmE41zkhjM53A2D');</script>
 </head>
 <body>
 
@@ -2294,7 +2296,18 @@ function submitReport(){
   rpts.push({id:_rptQ.id,q:_rptQ.q,cat:_rptQ.cat,cs:_rptQ.cs,a:_rptQ.a,reasons:reasons,note:note,ts:new Date().toISOString()});
   localStorage.setItem('quiz_reports',JSON.stringify(rpts));
   closeReport();
-  alert('報告しました！');
+  emailjs.send('service_7bkip5p','template_7lefxln',{
+    question_id: _rptQ.id,
+    category: _rptQ.cat,
+    question: _rptQ.q,
+    reasons: reasons.join('、')||'なし',
+    note: note||'なし',
+    timestamp: new Date().toLocaleString('ja-JP')
+  }).then(function(){
+    alert('報告しました！');
+  },function(){
+    alert('報告しました！（メール送信に失敗しましたが、端末には保存されました）');
+  });
 }
 function showReports(){
   var rpts=JSON.parse(localStorage.getItem('quiz_reports')||'[]');
